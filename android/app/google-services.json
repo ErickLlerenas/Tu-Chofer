@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "667363357557",
+    "firebase_url": "https://chofer-fe8fe.firebaseio.com",
+    "project_id": "chofer-fe8fe",
+    "storage_bucket": "chofer-fe8fe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:667363357557:android:e7dff5aab318062f0f993c",
+        "android_client_info": {
+          "package_name": "com.example.chofer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "667363357557-lfj2arrgbnlqa3a1p1i2eho0aprsvgrr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chofer",
+            "certificate_hash": "5e8557e9275cd091b80649394052791e7e6ed9e7"
+          }
+        },
+        {
+          "client_id": "667363357557-ptk50bie4g1p5fbnembrj4i1sau5sm2v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "667363357557-ptk50bie4g1p5fbnembrj4i1sau5sm2v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
