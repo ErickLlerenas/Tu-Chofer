@@ -1,22 +1,34 @@
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:search_map_place/search_map_place.dart';
 
-class ToInput extends StatelessWidget {
+class Destino extends StatefulWidget {
+  @override
+  _DestinoState createState() => _DestinoState();
+}
+
+class _DestinoState extends State<Destino> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    return Container(
-        margin: EdgeInsets.only(top: 70),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.yellow[700],
+        title: Row(
+          children: <Widget>[Text('Destino')],
+        ),
+      ),
+      body: Container(
+        margin: EdgeInsets.only(top: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
-              placeholder: "¿A dónde quieres ir?",
+              placeholder: "${appState.destinationController.text}",
 
               // The language of the autocompletion
               language: 'es',
@@ -33,9 +45,11 @@ class ToInput extends StatelessWidget {
                     CameraUpdate.newLatLng(geolocation.coordinates));
                 controller.animateCamera(
                     CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
+                Navigator.pop(context);
               },
             )),
           ],
-        ));
+        ))
+    );
   }
 }

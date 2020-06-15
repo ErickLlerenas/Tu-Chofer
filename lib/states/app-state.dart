@@ -20,6 +20,7 @@ class AppState with ChangeNotifier {
   GoogleMapController get mapController => _mapController;
   Set<Marker> get markers => _markers;
   Set<Polyline> get polyLines => _polyLines;
+  LatLng destination;
 
   AppState() {
     _getUserLocation();
@@ -34,7 +35,7 @@ class AppState with ChangeNotifier {
     _initialPosition = LatLng(position.latitude, position.longitude);
     print("the latitude is: ${position.longitude} and th longitude is: ${position.longitude} ");
     print("initial position is : ${_initialPosition.toString()}");
-    locationController.text = placemark[0].thoroughfare + " " + placemark[0].name;
+    locationController.text = placemark[0].thoroughfare + " " + placemark[0].name + ", " + placemark[0].subLocality + ", " + placemark[0].locality + ", " + placemark[0].administrativeArea + ", " + placemark[0].country;
     notifyListeners();
   }
 
@@ -42,7 +43,7 @@ class AppState with ChangeNotifier {
   void createRoute(String encondedPoly) {
     _polyLines.add(Polyline(
         polylineId: PolylineId(_lastPosition.toString()),
-        width: 5,
+        width: 3,
         points: _convertToLatLng(_decodePoly(encondedPoly)),
         color: Colors.black));
     notifyListeners();
@@ -110,7 +111,7 @@ class AppState with ChangeNotifier {
         await Geolocator().placemarkFromAddress(intendedLocation);
     double latitude = placemark[0].position.latitude;
     double longitude = placemark[0].position.longitude;
-    LatLng destination = LatLng(latitude, longitude);
+    destination = LatLng(latitude, longitude);
     _addMarker(destination, intendedLocation);
     String route = await _googleMapsServices.getRouteCoordinates(
         _initialPosition, destination);
@@ -139,4 +140,10 @@ class AppState with ChangeNotifier {
   //     }
   //   });
   // }
+
+  void changeOrigin(LatLng origin)async{
+    String route = await _googleMapsServices.getRouteCoordinates(
+        origin, destination);
+    createRoute(route);
+  }
 }
