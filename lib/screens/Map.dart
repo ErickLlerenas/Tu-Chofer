@@ -11,6 +11,7 @@ class Map extends StatefulWidget {
 }
 
 class _MapState extends State<Map> {
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);

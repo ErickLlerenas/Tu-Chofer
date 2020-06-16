@@ -3,13 +3,14 @@ import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:chofer/requests/google-maps-requests.dart';
+import 'package:uuid/uuid.dart';
 
 class AppState with ChangeNotifier {
   static LatLng _initialPosition;
   LatLng _lastPosition = _initialPosition;
   bool locationServiceActive = true;
-  final Set<Marker> _markers = {};
-  final Set<Polyline> _polyLines = {};
+  Set<Marker> _markers = {};
+  Set<Polyline> _polyLines = {};
   GoogleMapController _mapController;
   GoogleMapsServices _googleMapsServices = GoogleMapsServices();
   TextEditingController locationController = TextEditingController();
@@ -23,11 +24,11 @@ class AppState with ChangeNotifier {
   LatLng destination;
 
   AppState() {
-    _getUserLocation();
+    getUserLocation();
     // _loadingInitialPosition();
   }
 //  TO GET THE USERS LOCATION
-  void _getUserLocation() async {
+  void getUserLocation() async {
     print("GET USER METHOD RUNNING =========");
     Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     List<Placemark> placemark = await Geolocator()
@@ -41,8 +42,9 @@ class AppState with ChangeNotifier {
 
   //  TO CREATE ROUTE
   void createRoute(String encondedPoly) {
+    _polyLines = {};
     _polyLines.add(Polyline(
-        polylineId: PolylineId(_lastPosition.toString()),
+        polylineId: PolylineId(Uuid().v1()),
         width: 3,
         points: _convertToLatLng(_decodePoly(encondedPoly)),
         color: Colors.black));
@@ -51,8 +53,9 @@ class AppState with ChangeNotifier {
 
   //  ADD A MARKER ON THE MAP
   void _addMarker(LatLng location, String address) {
+    _markers = {};
     _markers.add(Marker(
-        markerId: MarkerId(_lastPosition.toString()),
+        markerId: MarkerId(Uuid().v1()),
         position: location,
         infoWindow: InfoWindow(title: address, snippet: "go here"),
         icon: BitmapDescriptor.defaultMarker));

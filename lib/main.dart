@@ -1,8 +1,8 @@
-import 'package:chofer/screens/login.dart';
+//import 'package:chofer/screens/login.dart';
 import 'package:chofer/states/login-state.dart';
 import 'package:flutter/material.dart';
 import 'package:chofer/states/app-state.dart';
-//import 'package:chofer/screens/Home.dart';
+import 'package:chofer/screens/Home.dart';
 import 'package:provider/provider.dart';
 
 main(){
@@ -18,7 +18,8 @@ class MyApp extends StatelessWidget{
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Login()
+      // home: Login()
+      home: Home()
     );
   }
 }

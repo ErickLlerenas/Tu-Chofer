@@ -1,4 +1,3 @@
-import 'package:chofer/screens/verification-code.dart';
 import 'package:chofer/states/login-state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -72,12 +71,8 @@ class _LoginState extends State<Login> {
                   padding: EdgeInsets.all(16),
                   onPressed: ()async {
                     if(loginState.nameController.text != "" && loginState.phoneController.text !=""){
-                    await loginState.loginUser("+52" + loginState.phoneController.text.trim(), context);
-                    await loginState.writeCounter(loginState.phoneController.text.trim());
-                    loginState.pruebaXD();
-                    
-                      Navigator.push(
-                context, MaterialPageRoute(builder: (context) => VerificationCode()));
+                    await loginState.loginUser(loginState.phoneController.text.trim(), context);
+                    await loginState.writeCounter(loginState.phoneController.text.trim());                    
                     }
                   },
                   color: Colors.deepPurpleAccent,

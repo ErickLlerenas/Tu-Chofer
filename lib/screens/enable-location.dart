@@ -1,7 +1,9 @@
 import 'package:chofer/screens/Home.dart';
+import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:location/location.dart';
+import 'package:provider/provider.dart';
 
 class EnableLocation extends StatefulWidget {
   @override
@@ -12,13 +14,17 @@ class _EnableLocationState extends State<EnableLocation> {
   Location location = new Location();
   bool _serviceEnabled;
   PermissionStatus _permissionGranted;
-
-  void enableService() async {
+  
+  void enableService(appState) async {
     _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
       _serviceEnabled = await location.requestService();
       if (!_serviceEnabled) {
         return;
+      }else{
+        appState.getUserLocation();
+        Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Home()));
       }
     }
   }
@@ -38,6 +44,7 @@ if (_permissionGranted == PermissionStatus.denied) {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -70,9 +77,7 @@ if (_permissionGranted == PermissionStatus.denied) {
                         Text('Activar', style: TextStyle(color: Colors.white)),
                     onPressed: () {
                       askPermission();
-                      enableService();
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Home()));
+                      enableService(appState);
                     },
                   ),
                 )

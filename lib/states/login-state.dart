@@ -1,9 +1,9 @@
 import 'package:chofer/screens/enable-location.dart';
+import 'package:chofer/screens/login.dart';
 import 'package:chofer/screens/verification-code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:chofer/screens/Home.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
@@ -31,15 +31,12 @@ class LoginState with ChangeNotifier {
     notifyListeners();
   }
 
-  void pruebaXD() {}
-
   Future loginUser(String phone, BuildContext context) async {
-    print(phone);
     FirebaseAuth _auth = FirebaseAuth.instance;
     auth = _auth;
-    notifyListeners();
+
     _auth.verifyPhoneNumber(
-        phoneNumber: phone,
+        phoneNumber: "+52" + phone,
         timeout: Duration(seconds: 120),
         verificationCompleted: (AuthCredential credential) async {
           AuthResult result = await _auth.signInWithCredential(credential);
@@ -54,25 +51,28 @@ class LoginState with ChangeNotifier {
         verificationFailed: (AuthException exception) {
           print("FAILED");
           print(exception.message);
+          Navigator.push(context,
+                MaterialPageRoute(builder: (context) => Login()));
         },
         codeSent: (String verificationId, [int forceResendingToken]) {
           verificationID = verificationId;
           Navigator.push(context,
                 MaterialPageRoute(builder: (context) => VerificationCode()));
         },
-        codeAutoRetrievalTimeout: null);
+        codeAutoRetrievalTimeout: (String id){
+          verificationID = id;
+        });
     notifyListeners();
   }
 
-  Future verifyCode(code,verificationId,context,_auth)async {
+  Future verifyCode(String code, BuildContext context)async {
     AuthCredential credential = PhoneAuthProvider.getCredential(
-        verificationId: verificationId, smsCode: code);
-    AuthResult result = await _auth.signInWithCredential(credential);
-
+        verificationId: verificationID, smsCode: code);
+    AuthResult result = await auth.signInWithCredential(credential);
     FirebaseUser user = result.user;
-
+    
     if (user != null) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => EnableLocation()));
     } else {
       print("Error");
     }

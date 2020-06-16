@@ -1,4 +1,3 @@
-import 'package:chofer/screens/enable-location.dart';
 import 'package:chofer/states/login-state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -58,15 +57,13 @@ class _VerificationCodeState extends State<VerificationCode> {
               enableActiveFill: true,
               controller: loginState.codeController,
               onCompleted: (value) {
-                loginState.verifyCode(value,loginState.verificationID,context,loginState.auth);
+                
               },
               onChanged: (value) {
                 print(value);
               },
               beforeTextPaste: (text) {
                 print("Allowing to paste $text");
-                //if you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
-                //but you can show anything you want here, like your pop up saying wrong paste format or etc
                 return true;
               },
             ),
@@ -93,10 +90,7 @@ class _VerificationCodeState extends State<VerificationCode> {
                 padding: EdgeInsets.all(16),
                 child: Text('Verificar', style: TextStyle(color: Colors.white)),
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => EnableLocation()));
+                  loginState.verifyCode(loginState.codeController.text,context);
                 },
               ),
             )
