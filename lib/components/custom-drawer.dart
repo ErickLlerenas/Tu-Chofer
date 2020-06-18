@@ -1,5 +1,6 @@
 import 'package:chofer/screens/Home.dart';
 import 'package:chofer/screens/history.dart';
+import 'package:chofer/screens/mapa-chofer.dart';
 import 'package:chofer/screens/mi-perfil.dart';
 import 'package:flutter/material.dart';
 
@@ -70,8 +71,9 @@ class CustomDrawer extends StatelessWidget {
             title: Text('Mapa Chofer'),
             trailing: Icon(Icons.navigate_next),
             onTap: () {
-              // Update the state of the app.
-              // ...
+              Navigator.pop(context);
+              Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => MapaChofer()));
             },
           ),
         ],

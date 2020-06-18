@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:chofer/screens/enable-location.dart';
 import 'package:chofer/screens/login.dart';
 import 'package:chofer/screens/verification-code.dart';
@@ -11,14 +13,14 @@ class LoginState with ChangeNotifier {
   TextEditingController _phoneController = TextEditingController();
   TextEditingController _nameController = TextEditingController();
   TextEditingController _codeController = TextEditingController();
-  String _phone = "";
+  String _phone;
   String verificationID;
   FirebaseAuth auth;
+  bool isRegistred = true;
 
   get phoneController => _phoneController;
   get nameController => _nameController;
   get codeController => _codeController;
-
   get phone => _phone;
 
   LoginState() {
@@ -28,6 +30,10 @@ class LoginState with ChangeNotifier {
   Future getPhone() async {
     _phone = await readPhoneNumber();
     print(_phone);
+    if(_phone!=null)
+      isRegistred=true;
+    else
+      isRegistred=false;
     notifyListeners();
   }
 
@@ -39,11 +45,17 @@ class LoginState with ChangeNotifier {
         phoneNumber: "+52" + phone,
         timeout: Duration(seconds: 120),
         verificationCompleted: (AuthCredential credential) async {
+          String credencial = credential.toString().replaceRange(0 , 12, '');
+          credencial = credencial.substring(0,credencial.length-1);
+          Map mapa = json.decode(credencial);
+          codeController.text = mapa['zzb'];
+          notifyListeners();
           AuthResult result = await _auth.signInWithCredential(credential);
           FirebaseUser user = result.user;
           if (user != null) {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => EnableLocation()));
+            writeCounter(phoneController.text.trim());  
           } else {
             print("Error");
           }
@@ -73,6 +85,7 @@ class LoginState with ChangeNotifier {
     
     if (user != null) {
       Navigator.push(context, MaterialPageRoute(builder: (context) => EnableLocation()));
+      writeCounter(phoneController.text.trim());  
     } else {
       print("Error");
     }

@@ -1,31 +1,21 @@
-import 'package:chofer/components/Footer.dart';
-import 'package:chofer/components/to-input.dart';
-import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:chofer/states/app-state.dart';
 
-class Map extends StatefulWidget {
-  final scaffoldKey;
-  Map(this.scaffoldKey);
+class MapaChofer extends StatefulWidget{
   @override
-  _MapState createState() => _MapState();
+  _MapaChoferState createState() => _MapaChoferState();
 }
 
-class _MapState extends State<Map> {
-
+class _MapaChoferState extends State<MapaChofer> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    return appState.initialPosition == null
-        ? Container(
-            alignment: Alignment.center,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          )
-        : Stack(children: <Widget>[
+    return Scaffold(
+      body:Stack(children: <Widget>[
             GoogleMap(
+              trafficEnabled: true,
               buildingsEnabled: true,
               indoorViewEnabled: true,
               initialCameraPosition:
@@ -38,15 +28,15 @@ class _MapState extends State<Map> {
               polylines: appState.polyLines,
               markers: appState.markers,
             ),
-            appState.destinationController.text == "" ? ToInput(): Footer(),
             Positioned(
               left: 10,
               top: 20,
               child: IconButton(
                 icon: Icon(Icons.menu),
-                onPressed: () => widget.scaffoldKey.currentState.openDrawer(),
+                onPressed: () {},
               ),
             ),
-          ]);
+          ])
+    );
   }
 }

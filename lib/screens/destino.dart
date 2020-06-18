@@ -15,7 +15,7 @@ class _DestinoState extends State<Destino> {
     final appState = Provider.of<AppState>(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.yellow[700],
+        backgroundColor: Colors.red[400],
         title: Row(
           children: <Widget>[Text('Destino')],
         ),
@@ -27,6 +27,7 @@ class _DestinoState extends State<Destino> {
           children: <Widget>[
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
+                  iconColor: Colors.red[400],
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
               placeholder: "${appState.destinationController.text}",
 
@@ -38,7 +39,7 @@ class _DestinoState extends State<Destino> {
               onSelected: (Place place) async {
                 final geolocation = await place.geolocation;
                 // Will animate the GoogleMap camera, taking us to the selected position with an appropriate zoom
-                appState.sendRequest(place.description);
+                appState.changeDestination(geolocation.coordinates,place.description);
                 appState.destinationController.text = place.description;
                 final GoogleMapController controller = appState.mapController;
                 controller.animateCamera(

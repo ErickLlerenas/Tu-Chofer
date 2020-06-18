@@ -9,8 +9,8 @@ class AppState with ChangeNotifier {
   static LatLng _initialPosition;
   LatLng _lastPosition = _initialPosition;
   bool locationServiceActive = true;
-  Set<Marker> _markers = {};
-  Set<Polyline> _polyLines = {};
+  Set<Marker> _markers;
+  Set<Polyline> _polyLines;
   GoogleMapController _mapController;
   GoogleMapsServices _googleMapsServices = GoogleMapsServices();
   TextEditingController locationController = TextEditingController();
@@ -22,21 +22,39 @@ class AppState with ChangeNotifier {
   Set<Marker> get markers => _markers;
   Set<Polyline> get polyLines => _polyLines;
   LatLng destination;
+  LatLng origin;
+  String distance = "...";
+  String duration = "...";
+  int distanceValue;
+  int durationValue;
+  int precio;
+  bool isLoadingPrices;
 
   AppState() {
-    getUserLocation();
+    //getUserLocation();
     // _loadingInitialPosition();
   }
 //  TO GET THE USERS LOCATION
   void getUserLocation() async {
-    print("GET USER METHOD RUNNING =========");
-    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    Position position = await Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     List<Placemark> placemark = await Geolocator()
         .placemarkFromCoordinates(position.latitude, position.longitude);
     _initialPosition = LatLng(position.latitude, position.longitude);
-    print("the latitude is: ${position.longitude} and th longitude is: ${position.longitude} ");
+    print(
+        "the latitude is: ${position.longitude} and th longitude is: ${position.longitude} ");
     print("initial position is : ${_initialPosition.toString()}");
-    locationController.text = placemark[0].thoroughfare + " " + placemark[0].name + ", " + placemark[0].subLocality + ", " + placemark[0].locality + ", " + placemark[0].administrativeArea + ", " + placemark[0].country;
+    locationController.text = placemark[0].thoroughfare +
+        " " +
+        placemark[0].name +
+        ", " +
+        placemark[0].subLocality +
+        ", " +
+        placemark[0].locality +
+        ", " +
+        placemark[0].administrativeArea +
+        ", " +
+        placemark[0].country;
     notifyListeners();
   }
 
@@ -57,7 +75,7 @@ class AppState with ChangeNotifier {
     _markers.add(Marker(
         markerId: MarkerId(Uuid().v1()),
         position: location,
-        infoWindow: InfoWindow(title: address, snippet: "go here"),
+        infoWindow: InfoWindow(title: "Destino", snippet: address),
         icon: BitmapDescriptor.defaultMarker));
     notifyListeners();
   }
@@ -110,6 +128,9 @@ class AppState with ChangeNotifier {
 
   //  SEND REQUEST
   void sendRequest(String intendedLocation) async {
+    isLoadingPrices = false;
+    precio = 30;
+    origin = _initialPosition;
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(intendedLocation);
     double latitude = placemark[0].position.latitude;
@@ -118,6 +139,21 @@ class AppState with ChangeNotifier {
     _addMarker(destination, intendedLocation);
     String route = await _googleMapsServices.getRouteCoordinates(
         _initialPosition, destination);
+    distance =
+        await _googleMapsServices.getDistance(_initialPosition, destination);
+    duration =
+        await _googleMapsServices.getDuration(_initialPosition, destination);
+    durationValue = await _googleMapsServices.getDurationValue(
+        _initialPosition, destination);
+    distanceValue = await _googleMapsServices.getDistanceValue(
+        _initialPosition, destination);
+
+    if (distanceValue > 3000) {
+      print(distanceValue);
+      precio += (((distanceValue - 3000) / 1000) * 5).toInt();
+      print(precio);
+    }
+    isLoadingPrices = true;
     createRoute(route);
     notifyListeners();
   }
@@ -144,9 +180,53 @@ class AppState with ChangeNotifier {
   //   });
   // }
 
-  void changeOrigin(LatLng origin)async{
-    String route = await _googleMapsServices.getRouteCoordinates(
-        origin, destination);
+  void changeOrigin(LatLng origen) async {
+    origin = origen;
+    isLoadingPrices = false;
+    precio = 30;
+    String route =
+        await _googleMapsServices.getRouteCoordinates(origen, destination);
     createRoute(route);
+    distance =
+        await _googleMapsServices.getDistance(origen, destination);
+    duration =
+        await _googleMapsServices.getDuration(origen, destination);
+    durationValue = await _googleMapsServices.getDurationValue(
+        origen, destination);
+    distanceValue = await _googleMapsServices.getDistanceValue(
+        origen, destination);
+    if (distanceValue > 3000) {
+      print(distanceValue);
+      precio += (((distanceValue - 3000) / 1000) * 5).toInt();
+      print(precio);
+    }
+    isLoadingPrices = true;
+    notifyListeners();
   }
+
+  void changeDestination(LatLng dest,intendedLocation)async{
+    destination = dest;
+    isLoadingPrices = false;
+    precio = 30;
+    String route =
+        await _googleMapsServices.getRouteCoordinates(origin, dest);
+    createRoute(route);
+    distance =
+        await _googleMapsServices.getDistance(origin, dest);
+    duration =
+        await _googleMapsServices.getDuration(origin, dest);
+    durationValue = await _googleMapsServices.getDurationValue(
+        origin, dest);
+    distanceValue = await _googleMapsServices.getDistanceValue(
+        origin, dest);
+    if (distanceValue > 3000) {
+      print(distanceValue);
+      precio += (((distanceValue - 3000) / 1000) * 5).toInt();
+      print(precio);
+    }
+    isLoadingPrices = true;
+    _addMarker(dest, intendedLocation);
+    notifyListeners();
+  }
+  
 }

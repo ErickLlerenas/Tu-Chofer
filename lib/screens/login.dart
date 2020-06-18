@@ -13,7 +13,6 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
 
     final loginState = Provider.of<LoginState>(context);
-
     return Scaffold(
         body: SingleChildScrollView(
       child: Container(
@@ -71,8 +70,7 @@ class _LoginState extends State<Login> {
                   padding: EdgeInsets.all(16),
                   onPressed: ()async {
                     if(loginState.nameController.text != "" && loginState.phoneController.text !=""){
-                    await loginState.loginUser(loginState.phoneController.text.trim(), context);
-                    await loginState.writeCounter(loginState.phoneController.text.trim());                    
+                    await loginState.loginUser(loginState.phoneController.text.trim(), context);                  
                     }
                   },
                   color: Colors.deepPurpleAccent,

@@ -8,11 +8,14 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
+      key: _scaffoldKey,
       drawer: CustomDrawer(),
-      body: Map());
+      body: Map(_scaffoldKey));
   }
 }
 

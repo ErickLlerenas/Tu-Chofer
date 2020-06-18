@@ -1,5 +1,5 @@
-import 'package:chofer/components/custom-drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:chofer/components/custom-drawer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 
@@ -13,7 +13,6 @@ class _MiPerfilState extends State<MiPerfil> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: CustomDrawer(),
-      
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -31,13 +30,13 @@ class _MiPerfilState extends State<MiPerfil> {
           height: 30,
         ),
         ButtonTheme(
-          height: 50,
+          height: 45,
           minWidth: 125,
           child: FlatButton(
           color: Colors.teal[400],
           child: Text('Guardar',style: TextStyle(color:Colors.white),),
           onPressed: (){
-
+            
           },
         ),
         )

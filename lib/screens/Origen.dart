@@ -15,7 +15,7 @@ class _OrigenState extends State<Origen> {
     final appState = Provider.of<AppState>(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.yellow[700],
+        backgroundColor: Colors.blue[400],
         title: Row(
           children: <Widget>[Text('Origen')],
         ),
@@ -27,6 +27,7 @@ class _OrigenState extends State<Origen> {
           children: <Widget>[
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
+                  iconColor: Colors.blue[400],
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
               placeholder: "${appState.locationController.text}",
 

@@ -15,9 +15,9 @@ class ToInput extends StatelessWidget {
           children: <Widget>[
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
+                  iconColor: Colors.grey[700],
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
               placeholder: "¿A dónde quieres ir?",
-
               // The language of the autocompletion
               language: 'es',
               // The position used to give better recomendations. In this case we are using the user position
