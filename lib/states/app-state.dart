@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:chofer/requests/google-maps-requests.dart';
 import 'package:uuid/uuid.dart';
+import 'package:location/location.dart' as l;
 
 class AppState with ChangeNotifier {
   static LatLng _initialPosition;
@@ -29,12 +30,15 @@ class AppState with ChangeNotifier {
   int durationValue;
   int precio;
   bool isLoadingPrices;
+  l.Location location = new l.Location();
+  bool serviceEnabled = true;
+  l.PermissionStatus _permissionGranted;
 
   AppState() {
-    //getUserLocation();
-    // _loadingInitialPosition();
+    hasAlreadyPermissionsAndService();
   }
-//  TO GET THE USERS LOCATION
+
+  //  TO GET THE USERS LOCATION
   void getUserLocation() async {
     Position position = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
@@ -91,26 +95,23 @@ class AppState with ChangeNotifier {
     return result;
   }
 
-  // DECODE POLY
+  // DECODE POLY (THIS FUNCTION IS PROVIDED BY GOOGLE)
   List _decodePoly(String poly) {
     var list = poly.codeUnits;
     var lList = new List();
     int index = 0;
     int len = poly.length;
     int c = 0;
-// repeating until all attributes are decoded
     do {
       var shift = 0;
       int result = 0;
 
-      // for decoding value of one attribute
       do {
         c = list[index] - 63;
         result |= (c & 0x1F) << (shift * 5);
         index++;
         shift++;
       } while (c >= 32);
-      /* if value is negetive then bitwise not the value */
       if (result & 1 == 1) {
         result = ~result;
       }
@@ -118,7 +119,6 @@ class AppState with ChangeNotifier {
       lList.add(result1);
     } while (index < len);
 
-/*adding to previous value as done in encoding */
     for (var i = 2; i < lList.length; i++) lList[i] += lList[i - 2];
 
     print(lList.toString());
@@ -164,22 +164,13 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  //  ON MAP CREATE
+  //  ON MAP CREATED
   void onMapCreated(GoogleMapController controller) {
     _mapController = controller;
     notifyListeners();
   }
 
-//  LOADING INITIAL POSITION
-  // void _loadingInitialPosition()async{
-  //   await Future.delayed(Duration(seconds: 5)).then((v) {
-  //     if(_initialPosition == null){
-  //       locationServiceActive = false;
-  //       notifyListeners();
-  //     }
-  //   });
-  // }
-
+  // CHANGES THE ORIGIN OF THE ROUTE
   void changeOrigin(LatLng origen) async {
     origin = origen;
     isLoadingPrices = false;
@@ -204,6 +195,7 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
+  // CHANGES THE DESTINATION OF THE ROUTE
   void changeDestination(LatLng dest,intendedLocation)async{
     destination = dest;
     isLoadingPrices = false;
@@ -227,6 +219,17 @@ class AppState with ChangeNotifier {
     isLoadingPrices = true;
     _addMarker(dest, intendedLocation);
     notifyListeners();
+  }
+
+  // CHECKS IF THE USER HAS PERMISSIONS AND THE LOCATION ACTIVE
+  void hasAlreadyPermissionsAndService() async {
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == l.PermissionStatus.granted) {
+      serviceEnabled = await location.serviceEnabled();
+      if (serviceEnabled) {
+        getUserLocation();
+      }
+    }
   }
   
 }

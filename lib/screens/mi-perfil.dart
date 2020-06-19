@@ -1,6 +1,8 @@
+import 'package:chofer/states/login-state.dart';
 import 'package:flutter/material.dart';
 import 'package:chofer/components/custom-drawer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 
 class MiPerfil extends StatefulWidget{
@@ -11,6 +13,7 @@ class MiPerfil extends StatefulWidget{
 class _MiPerfilState extends State<MiPerfil> {
   @override
   Widget build(BuildContext context) {
+    final loginState = Provider.of<LoginState>(context);
     return Scaffold(
       drawer: CustomDrawer(),
       body: Center(
@@ -23,9 +26,9 @@ class _MiPerfilState extends State<MiPerfil> {
                   color: Colors.grey[700],
                 ),
             Text(
-          'Erick Noel Llerenas Cuevas',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.grey[700])
+          '${loginState.name}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.grey[700])
         ),
-        Text('3121811727',style: TextStyle(color: Colors.grey[700])),
+        Text('${loginState.phone}',style: TextStyle(color: Colors.grey[700])),
         SizedBox(
           height: 30,
         ),

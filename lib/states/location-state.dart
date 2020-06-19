@@ -6,15 +6,15 @@ import 'package:chofer/screens/Home.dart';
 class LocationState with ChangeNotifier{
 
   Location location = new Location();
-  bool _serviceEnabled;
+  bool serviceEnabled = true;
   PermissionStatus _permissionGranted;
 
-
+  //ENABLES THE LOCATION DEVICE
   void enableService(appState,BuildContext context) async {
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (_serviceEnabled) {
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (serviceEnabled) {
         appState.getUserLocation();
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => Home()));
@@ -26,7 +26,7 @@ class LocationState with ChangeNotifier{
       Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
     }
   }
-
+  //ENABLES THE LOCATION PERMISSIONS
    void askPermission(appState,BuildContext context) async {
     _permissionGranted = await location.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
@@ -42,14 +42,6 @@ class LocationState with ChangeNotifier{
   }
 
 
-  void hasAlreadyPermissions(appState) async {
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.granted) {
-      _serviceEnabled = await location.serviceEnabled();
-      if (_serviceEnabled) {
-        appState.getUserLocation();
-      }
-    }
-  }
+  
 
 }

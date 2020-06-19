@@ -4,7 +4,7 @@ import 'package:chofer/states/login-state.dart';
 import 'package:flutter/material.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:chofer/states/location-state.dart';
-// import 'package:chofer/screens/Home.dart';
+import 'package:chofer/screens/Home.dart';
 import 'package:provider/provider.dart';
 
 main(){
@@ -21,9 +21,11 @@ class MyApp extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     final loginState = Provider.of<LoginState>(context);
+    final appState = Provider.of<AppState>(context);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: loginState.isRegistred ? EnableLocation():Login()
+      home: loginState.isRegistred && appState.serviceEnabled ? Home(): loginState.isRegistred && appState.serviceEnabled == false ? EnableLocation() : Login()
     );
   }
 }
