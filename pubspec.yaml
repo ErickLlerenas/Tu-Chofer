@@ -27,15 +27,17 @@ dependencies:
   location: ^3.0.2
   geoflutterfire: ^2.0.3+8
   google_maps_webservice: ^0.0.17
-  geolocator: ^5.3.2+2
+  geolocator: ^5.3.2+2  
   http: ^0.12.1
   provider: ^3.0.0+1
   search_map_place: ^0.3.0
   simple_animations: ^2.2.1
-  flutter_svg: ^0.17.1
+  flutter_svg: ^0.17.1 #NOT INFORMATION IF WORKS ON IOS
   path_provider: ^1.6.10
   pin_code_fields: ^3.0.1
   uuid: 2.1.0
+  image_picker: ^0.6.7+2
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -65,6 +67,8 @@ flutter:
    - assets/location.svg
    - assets/user.svg
    - assets/origin.svg
+   - assets/empty.svg
+   - assets/car.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

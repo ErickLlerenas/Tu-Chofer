@@ -40,8 +40,8 @@ class _MapState extends State<Map> {
             ),
             appState.destinationController.text == "" ? ToInput(): Footer(),
             Positioned(
-              left: 10,
-              top: 20,
+              left: 8,
+              top: 25,
               child: IconButton(
                 icon: Icon(Icons.menu),
                 onPressed: () => widget.scaffoldKey.currentState.openDrawer(),
