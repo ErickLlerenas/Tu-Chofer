@@ -65,7 +65,7 @@ class _MapaChoferState extends State<MapaChofer> {
           if (isActive) {
             _mapController.animateCamera(CameraUpdate.newCameraPosition(
                 new CameraPosition(
-                    bearing: 192,
+                    bearing: 0,
                     tilt: 0,
                     zoom: 16.5,
                     target: LatLng(

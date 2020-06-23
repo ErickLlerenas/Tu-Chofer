@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -18,11 +18,15 @@ class ChoferFooter extends StatefulWidget {
 class _ChoferFooterState extends State<ChoferFooter> {
 
   int _time = 10;
-
+  AudioPlayer audioPlayer = AudioPlayer();
   @override
   void initState() {
     startTimer();
+    playSound();
     super.initState();
+  }
+  void playSound()async{
+    await audioPlayer.play('https://notificationsounds.com/soundfiles/08b255a5d42b89b0585260b6f2360bdd/file-sounds-1137-eventually.mp3',isLocal: false);
   }
 
   void startTimer() {
