@@ -148,7 +148,6 @@ class LoginState with ChangeNotifier {
 
   // WRITE THE USER NAME TO THE FILE
   Future<File> writeName(String userName) async {
-    print(userName);
     final file = await _localFileName;
     return file.writeAsString('$userName');
   }

@@ -3,20 +3,20 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ChoferFooter extends StatefulWidget {
+class DriverFooter extends StatefulWidget {
   final String origin;
   final String destination;
   final int price;
   final String distance;
   final String duration;
   final String phone;
-  ChoferFooter({this.origin,this.destination,this.price,this.distance,this.duration,this.phone});
+  DriverFooter({this.origin,this.destination,this.price,this.distance,this.duration,this.phone});
   @override
-  _ChoferFooterState createState() => _ChoferFooterState();
+  _DriverFooterState createState() => _DriverFooterState();
 }
 
-class _ChoferFooterState extends State<ChoferFooter> {
-
+class _DriverFooterState extends State<DriverFooter> {
+  Timer _timer;
   int _time = 10;
   AudioPlayer audioPlayer = AudioPlayer();
   @override
@@ -29,9 +29,15 @@ class _ChoferFooterState extends State<ChoferFooter> {
     await audioPlayer.play('https://notificationsounds.com/soundfiles/08b255a5d42b89b0585260b6f2360bdd/file-sounds-1137-eventually.mp3',isLocal: false);
   }
 
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
   void startTimer() {
   const oneSec = const Duration(seconds: 1);
-  Timer.periodic(
+  _timer = Timer.periodic(
     oneSec,
     (Timer timer) => setState(
       () {
@@ -44,6 +50,25 @@ class _ChoferFooterState extends State<ChoferFooter> {
     ),
   );
 }
+ void _showDialog() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title:  Text("Validando...",textAlign: TextAlign.center,style: TextStyle(color:Colors.grey[700],fontSize: 20,fontWeight: FontWeight.bold),),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              CircularProgressIndicator(),
+            ],
+          )
+          
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
 
@@ -115,7 +140,12 @@ class _ChoferFooterState extends State<ChoferFooter> {
                           style: TextStyle(color: Colors.white),
                         ),
                         onPressed: () {
+                          setState(() {
+                            _time = 0;
+                          });
                           Firestore.instance.collection('Users').document('${widget.phone}').updateData({'serviceAccepted': true});
+                          _showDialog();
+
                         },
                       ),
                     )

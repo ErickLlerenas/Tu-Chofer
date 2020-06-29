@@ -4,20 +4,20 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:search_map_place/search_map_place.dart';
 
-class Origen extends StatefulWidget {
+class Destination extends StatefulWidget {
   @override
-  _OrigenState createState() => _OrigenState();
+  _DestinationState createState() => _DestinationState();
 }
 
-class _OrigenState extends State<Origen> {
+class _DestinationState extends State<Destination> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue[400],
+        backgroundColor: Colors.red[400],
         title: Row(
-          children: <Widget>[Text('Origen')],
+          children: <Widget>[Text('Destino')],
         ),
       ),
       body: Container(
@@ -27,22 +27,19 @@ class _OrigenState extends State<Origen> {
           children: <Widget>[
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
-                  iconColor: Colors.blue[400],
+                  iconColor: Colors.red[400],
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
-              placeholder: "${appState.locationController.text}",
-
-              // The language of the autocompletion
+              placeholder: "${appState.destinationController.text}",
               language: 'es',
-              // The position used to give better recomendations. In this case we are using the user position
               location: appState.initialPosition,
               radius: 30000,
               onSelected: (Place place) async {
                 final geolocation = await place.geolocation;
-                appState.locationController.text = place.description;
+                appState.changeDestination(geolocation.coordinates,place.description);
+                appState.destinationController.text = place.description;
                 final GoogleMapController controller = appState.mapController;
                 controller.animateCamera(
                     CameraUpdate.newLatLng(geolocation.coordinates));
-                    appState.changeOrigin(geolocation.coordinates);
                 controller.animateCamera(
                     CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
                 Navigator.pop(context);

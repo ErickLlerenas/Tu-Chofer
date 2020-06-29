@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:chofer/components/chofer-Footer.dart';
+import 'package:chofer/components/driver-footer.dart';
 import 'package:chofer/components/custom-drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,18 +11,17 @@ import 'package:chofer/states/app-state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
-class MapaChofer extends StatefulWidget {
+class DriverMap extends StatefulWidget {
   @override
-  _MapaChoferState createState() => _MapaChoferState();
+  _DriverMapState createState() => _DriverMapState();
 }
 
-class _MapaChoferState extends State<MapaChofer> {
+class _DriverMapState extends State<DriverMap> {
   bool isActive = false;
   Location _location = Location();
   StreamSubscription locationSubscription;
   Marker _marker;
   GoogleMapController _mapController;
-
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Future getMarker() async {
@@ -79,6 +78,8 @@ class _MapaChoferState extends State<MapaChofer> {
 
   void onMapCreated(GoogleMapController controller) {
     _mapController = controller;
+    String _mapStyle = '[{"elementType":"geometry","stylers":[{"color":"#212121"}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},{"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#757575"}]},{"featureType":"administrative.country","elementType":"labels.text.fill","stylers":[{"color":"#9e9e9e"}]},{"featureType":"administrative.land_parcel","stylers":[{"visibility":"off"}]},{"featureType":"administrative.land_parcel","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"color":"#bdbdbd"}]},{"featureType":"poi","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"featureType":"poi.business","stylers":[{"visibility":"off"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},{"featureType":"poi.park","elementType":"labels.text.stroke","stylers":[{"color":"#1b1b1b"}]},{"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},{"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#8a8a8a"}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},{"featureType":"road.highway.controlled_access","elementType":"geometry","stylers":[{"color":"#4e4e4e"}]},{"featureType":"road.local","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"road.local","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},{"featureType":"transit","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#17263C"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#3d3d3d"}]}]';
+    _mapController.setMapStyle(_mapStyle);
   }
 
   @override
@@ -86,6 +87,7 @@ class _MapaChoferState extends State<MapaChofer> {
     if (locationSubscription != null) {
       locationSubscription.cancel();
     }
+    isActive = false;
     super.dispose();
   }
 
@@ -95,7 +97,7 @@ class _MapaChoferState extends State<MapaChofer> {
     return Scaffold(
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.local_taxi),
-          backgroundColor: isActive ? Colors.deepPurpleAccent : Colors.black,
+          backgroundColor: isActive ? Colors.deepPurpleAccent : Colors.red,
           onPressed: () {
             setState(() {
               isActive = !isActive;
@@ -124,7 +126,6 @@ class _MapaChoferState extends State<MapaChofer> {
               return Stack(children: <Widget>[
                 GoogleMap(
                   compassEnabled: false,
-                  trafficEnabled: true,
                   buildingsEnabled: true,
                   indoorViewEnabled: true,
                   initialCameraPosition: CameraPosition(
@@ -134,11 +135,10 @@ class _MapaChoferState extends State<MapaChofer> {
                   mapType: MapType.normal,
                   myLocationButtonEnabled: false,
                   zoomControlsEnabled: false,
-                  polylines: appState.polyLines,
                   markers: Set.of((_marker != null ? [_marker] : [])),
                 ),
                 isActive && snapshot.data.documents[0]['isAskingService']
-                    ? ChoferFooter(
+                    ? DriverFooter(
                         origin: snapshot.data.documents[0]['originName'],
                         destination: snapshot.data.documents[0]
                             ['destinationName'],
@@ -151,7 +151,7 @@ class _MapaChoferState extends State<MapaChofer> {
                   left: 8,
                   top: 25,
                   child: IconButton(
-                    icon: Icon(Icons.menu),
+                    icon: Icon(Icons.menu,color:Colors.white),
                     onPressed: () => _scaffoldKey.currentState.openDrawer(),
                   ),
                 ),

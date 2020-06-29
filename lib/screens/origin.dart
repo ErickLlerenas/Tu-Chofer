@@ -4,20 +4,20 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:search_map_place/search_map_place.dart';
 
-class Destino extends StatefulWidget {
+class Origin extends StatefulWidget {
   @override
-  _DestinoState createState() => _DestinoState();
+  _OriginState createState() => _OriginState();
 }
 
-class _DestinoState extends State<Destino> {
+class _OriginState extends State<Origin> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.red[400],
+        backgroundColor: Colors.blue[400],
         title: Row(
-          children: <Widget>[Text('Destino')],
+          children: <Widget>[Text('Origen')],
         ),
       ),
       body: Container(
@@ -27,23 +27,19 @@ class _DestinoState extends State<Destino> {
           children: <Widget>[
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
-                  iconColor: Colors.red[400],
+                  iconColor: Colors.blue[400],
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
-              placeholder: "${appState.destinationController.text}",
-
-              // The language of the autocompletion
+              placeholder: "${appState.locationController.text}",
               language: 'es',
-              // The position used to give better recomendations. In this case we are using the user position
               location: appState.initialPosition,
               radius: 30000,
               onSelected: (Place place) async {
                 final geolocation = await place.geolocation;
-                // Will animate the GoogleMap camera, taking us to the selected position with an appropriate zoom
-                appState.changeDestination(geolocation.coordinates,place.description);
-                appState.destinationController.text = place.description;
+                appState.locationController.text = place.description;
                 final GoogleMapController controller = appState.mapController;
                 controller.animateCamera(
                     CameraUpdate.newLatLng(geolocation.coordinates));
+                    appState.changeOrigin(geolocation.coordinates);
                 controller.animateCamera(
                     CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
                 Navigator.pop(context);

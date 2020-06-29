@@ -8,6 +8,7 @@ class ToInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    String firstName = appState.name.split(' ')[0];
     return Container(
         margin: EdgeInsets.only(top: 70),
         child: Row(
@@ -15,9 +16,10 @@ class ToInput extends StatelessWidget {
           children: <Widget>[
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
+                  darkMode: false,
                   iconColor: Colors.grey[700],
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
-              placeholder: "¿A dónde quieres ir?",
+              placeholder: "Hola $firstName, ¿A dónde quieres ir?",
               // The language of the autocompletion
               language: 'es',
               // The position used to give better recomendations. In this case we are using the user position

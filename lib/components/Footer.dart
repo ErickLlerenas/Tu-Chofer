@@ -1,9 +1,9 @@
-import 'package:chofer/screens/Origen.dart';
+import 'package:chofer/screens/origin.dart';
 import 'package:chofer/states/login-state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chofer/states/app-state.dart';
-import 'package:chofer/screens/destino.dart';
+import 'package:chofer/screens/destination.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Footer extends StatefulWidget {
@@ -30,7 +30,7 @@ class _FooterState extends State<Footer> {
                   ListTile(
                     onTap: () {
                       Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Origen()));
+                          MaterialPageRoute(builder: (context) => Origin()));
                     },
                     leading: Icon(Icons.location_on, color: Colors.blue[400]),
                     title: Text("Origen"),
@@ -40,7 +40,7 @@ class _FooterState extends State<Footer> {
                   ListTile(
                     onTap: () {
                       Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Destino()));
+                          MaterialPageRoute(builder: (context) => Destination()));
                     },
                     leading: Icon(Icons.location_on, color: Colors.red[400]),
                     title: Text("Destino"),
@@ -62,7 +62,7 @@ class _FooterState extends State<Footer> {
                             height: 45,
                             minWidth: 100,
                             child: FlatButton(
-                              color: Colors.deepPurpleAccent,
+                              color: Colors.grey[800],
                               child: Text(
                                 'Pide tu chofer',
                                 style: TextStyle(color: Colors.white),

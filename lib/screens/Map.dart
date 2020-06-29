@@ -1,4 +1,4 @@
-import 'package:chofer/components/Footer.dart';
+import 'package:chofer/components/footer.dart';
 import 'package:chofer/components/to-input.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
@@ -48,5 +48,5 @@ class _MapState extends State<Map> {
               ),
             ),
           ]);
-  }
+  } 
 }

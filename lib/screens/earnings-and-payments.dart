@@ -1,14 +1,13 @@
-import 'package:chofer/components/custom-drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:chofer/components/custom-drawer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class History extends StatefulWidget{
+class EarningsAndPayments extends StatefulWidget{
   @override
-  _HistoryState createState() => _HistoryState();
+  _EarningsAndPaymentsState createState() => _EarningsAndPaymentsState();
 }
 
-class _HistoryState extends State<History> {
-
+class _EarningsAndPaymentsState extends State<EarningsAndPayments> {
   final history = [];
   @override
   Widget build(BuildContext context) {
@@ -40,7 +39,7 @@ class _HistoryState extends State<History> {
                 'assets/empty.svg',
                 height: 300,
               ),
-          Text('Vacío',
+          Text('Sin ganancias',
                 style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
@@ -53,5 +52,5 @@ class _HistoryState extends State<History> {
       ),
       )
     );
-  }
+    }
 }
