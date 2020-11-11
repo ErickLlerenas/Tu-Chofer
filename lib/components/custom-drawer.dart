@@ -22,11 +22,12 @@ class CustomDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: Colors.grey[800]),
+            decoration: BoxDecoration(color: Colors.teal[800]),
             accountName: Text("${appState.name}"),
-            accountEmail: Text("${appState.phone}"),
-            currentAccountPicture: appState.image == null &&
-                    appState.downloadURL == null
+            accountEmail: Text(
+              "(${appState.phone[0]}${appState.phone[1]}${appState.phone[2]})-${appState.phone[3]}${appState.phone[4]}${appState.phone[5]}-${appState.phone[6]}${appState.phone[7]}${appState.phone[8]}${appState.phone[9]}",
+            ),
+            currentAccountPicture: appState.downloadURL.isEmpty
                 ? CircleAvatar(
                     backgroundColor: Colors.white,
                     child: Text(
@@ -34,17 +35,15 @@ class CustomDrawer extends StatelessWidget {
                       style: TextStyle(fontSize: 40.0, color: Colors.grey[600]),
                     ),
                   )
-                : appState.image != null && appState.downloadURL != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(200),
-                        child: Image.file(appState.image,
-                            height: 50, width: 50, fit: BoxFit.cover),
-                      )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(200),
-                        child: Image.network(appState.downloadURL,
-                            height: 50, width: 50, fit: BoxFit.cover),
-                      ),
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(200),
+                    child: Image.network(appState.downloadURL, loadingBuilder:
+                        (BuildContext context, Widget child,
+                            ImageChunkEvent loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return CircularProgressIndicator();
+                    }, height: 50, width: 50, fit: BoxFit.cover),
+                  ),
           ),
           ListTile(
             leading: Icon(Icons.location_on),
@@ -80,14 +79,10 @@ class CustomDrawer extends StatelessWidget {
             },
           ),
           Container(
-            decoration: BoxDecoration(color: Colors.grey[200]),
             child: ListTile(
-              leading: Icon(Icons.local_taxi, color: Colors.grey[800]),
-              title: Text(
-                'Quiero ser chofer',
-                style: TextStyle(color: Colors.grey[800]),
-              ),
-              trailing: Icon(Icons.navigate_next, color: Colors.grey[800]),
+              leading: Icon(Icons.local_taxi),
+              title: Text('Quiero ser chofer'),
+              trailing: Icon(Icons.navigate_next),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pop(context);
@@ -95,42 +90,6 @@ class CustomDrawer extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                         builder: (context) => DriverRequestScreen1()));
-              },
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(color: Colors.grey[200]),
-            child: ListTile(
-              leading: Icon(Icons.my_location, color: Colors.grey[800]),
-              title: Text(
-                'Mapa Chofer',
-                style: TextStyle(color: Colors.grey[800]),
-              ),
-              trailing: Icon(Icons.navigate_next, color: Colors.grey[800]),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => DriverMap()));
-              },
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(color: Colors.grey[200]),
-            child: ListTile(
-              leading: Icon(Icons.attach_money, color: Colors.grey[800]),
-              title: Text(
-                'Ganancias y pagos',
-                style: TextStyle(color: Colors.grey[800]),
-              ),
-              trailing: Icon(Icons.navigate_next, color: Colors.grey[800]),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => EarningsAndPayments()));
               },
             ),
           ),
@@ -146,6 +105,41 @@ class CustomDrawer extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (context) => TermsAndConditions()));
             },
+          ),
+          Divider(),
+          Container(
+            child: ListTile(
+              leading: Icon(Icons.my_location, color: Colors.teal),
+              title: Text(
+                'Mapa Chofer',
+                style: TextStyle(color: Colors.teal),
+              ),
+              trailing: Icon(Icons.navigate_next, color: Colors.teal),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => DriverMap()));
+              },
+            ),
+          ),
+          Container(
+            child: ListTile(
+              leading: Icon(Icons.attach_money, color: Colors.teal),
+              title: Text(
+                'Ganancias y pagos',
+                style: TextStyle(color: Colors.teal),
+              ),
+              trailing: Icon(Icons.navigate_next, color: Colors.teal),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => EarningsAndPayments()));
+              },
+            ),
           ),
         ],
       ),

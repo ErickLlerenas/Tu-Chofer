@@ -15,6 +15,9 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
     appState.carNameController = TextEditingController(text: appState.carName);
     appState.carModelController =
         TextEditingController(text: appState.carModel);
+    appState.carPlatesController =
+        TextEditingController(text: appState.carPlates);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey[50],
@@ -57,7 +60,7 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
                             ),
                           ),
                           FloatingActionButton(
-                              backgroundColor: Colors.deepPurpleAccent,
+                              backgroundColor: Colors.teal,
                               onPressed: () => appState.getCarImage(),
                               child: Icon(Icons.add_a_photo))
                         ],
@@ -81,6 +84,16 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
               TextFormField(
                 controller: appState.carNameController,
                 decoration: InputDecoration(
+                    focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorStyle: TextStyle(color: Colors.teal),
+                    errorText: !appState.validCarName
+                        ? "Ingresa la marca del coche"
+                        : null,
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: Colors.grey[200])),
@@ -92,6 +105,16 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
               TextFormField(
                 controller: appState.carModelController,
                 decoration: InputDecoration(
+                    focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorStyle: TextStyle(color: Colors.teal),
+                    errorText: !appState.validCarModel
+                        ? "Ingresa el modelo del coche"
+                        : null,
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: Colors.grey[200])),
@@ -99,6 +122,27 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: Colors.grey[300])),
                     hintText: "Modelo del coche"),
+              ),
+              TextFormField(
+                controller: appState.carPlatesController,
+                decoration: InputDecoration(
+                    focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorStyle: TextStyle(color: Colors.teal),
+                    errorText: !appState.validCarPlates
+                        ? "Ingresa las placas del coche"
+                        : null,
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.grey[200])),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.grey[300])),
+                    hintText: "Placas del coche"),
               ),
               SizedBox(height: 16),
               Container(
@@ -108,21 +152,40 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
                   textColor: Colors.white,
                   padding: EdgeInsets.all(16),
                   onPressed: () {
-                    print(appState.carModelController.text);
-                    if (appState.carNameController.text.length != 0 &&
-                        appState.carModelController.text.length != 0) {
-                      appState.saveDriverDataRequest(
-                          appState.phone,
-                          appState.name,
-                          appState.address,
-                          appState.carNameController.text,
-                          appState.carModelController.text,
-                          context);
-                      appState.savePicture(context, appState.phone);
-                      appState.saveCarPicture(context, appState.phone);
+                    appState.carNameController.text.isEmpty
+                        ? appState.validateCarName(
+                            false, appState.carNameController.text)
+                        : appState.validateCarName(
+                            true, appState.carNameController.text);
+
+                    appState.carModelController.text.isEmpty
+                        ? appState.validateCarModel(
+                            false, appState.carModelController.text)
+                        : appState.validateCarModel(
+                            true, appState.carModelController.text);
+
+                    appState.carPlatesController.text.isEmpty
+                        ? appState.validateCarPlates(
+                            false, appState.carPlatesController.text)
+                        : appState.validateCarPlates(
+                            true, appState.carPlatesController.text);
+
+                    if (appState.validCarName &&
+                        appState.validCarModel &&
+                        appState.validCarPlates) {
+                      print("xdd");
+                      // appState.saveDriverDataRequest(
+                      //     appState.phone,
+                      //     appState.name,
+                      //     appState.address,
+                      //     appState.carNameController.text,
+                      //     appState.carModelController.text,
+                      //     context);
+                      // appState.savePicture(context, appState.phone);
+                      // appState.saveCarPicture(context, appState.phone);
                     }
                   },
-                  color: Colors.deepPurpleAccent,
+                  color: Colors.teal,
                 ),
               )
             ],

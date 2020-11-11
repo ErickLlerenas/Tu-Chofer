@@ -13,6 +13,10 @@ class Map extends StatefulWidget {
 }
 
 class _MapState extends State<Map> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,7 @@ class _MapState extends State<Map> {
               polylines: appState.polyLines,
               markers: appState.markers,
             ),
-            appState.destinationController.text == "" ? ToInput(): Footer(),
+            appState.destinationController.text.isEmpty ? ToInput() : Footer(),
             Positioned(
               left: 8,
               top: 25,
@@ -48,5 +52,5 @@ class _MapState extends State<Map> {
               ),
             ),
           ]);
-  } 
+  }
 }

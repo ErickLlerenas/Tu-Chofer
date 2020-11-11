@@ -22,8 +22,9 @@ class _ProfileState extends State<Profile> {
         drawer: CustomDrawer(),
         body: Builder(
             builder: (context) => SingleChildScrollView(
-                    child: Column(
+                  child: Column(
                     children: <Widget>[
+                      SizedBox(height: 35),
                       Text('Mi perfil',
                           style: TextStyle(
                               fontSize: 30,
@@ -48,7 +49,7 @@ class _ProfileState extends State<Profile> {
                                     ),
                                   ),
                                   FloatingActionButton(
-                                      backgroundColor: Colors.grey[800],
+                                      backgroundColor: Colors.teal,
                                       onPressed: () => appState.getImage(),
                                       child: Icon(Icons.add_a_photo))
                                 ],
@@ -66,8 +67,7 @@ class _ProfileState extends State<Profile> {
                                             fit: BoxFit.cover),
                                       ),
                                       FloatingActionButton(
-                                          backgroundColor:
-                                              Colors.grey[800],
+                                          backgroundColor: Colors.teal,
                                           onPressed: () => appState.getImage(),
                                           child: Icon(Icons.add_a_photo)),
                                     ],
@@ -84,8 +84,7 @@ class _ProfileState extends State<Profile> {
                                             fit: BoxFit.cover),
                                       ),
                                       FloatingActionButton(
-                                          backgroundColor:
-                                              Colors.grey[800],
+                                          backgroundColor: Colors.teal,
                                           onPressed: () => appState.getImage(),
                                           child: Icon(Icons.add_a_photo)),
                                     ],
@@ -96,6 +95,11 @@ class _ProfileState extends State<Profile> {
                         child: Form(
                           child: Column(
                             children: <Widget>[
+                              Text(
+                                "(${appState.phone[0]}${appState.phone[1]}${appState.phone[2]})-${appState.phone[3]}${appState.phone[4]}${appState.phone[5]}-${appState.phone[6]}${appState.phone[7]}${appState.phone[8]}${appState.phone[9]}",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              SizedBox(height: 10),
                               TextFormField(
                                 controller: appState.nameController,
                                 decoration: InputDecoration(
@@ -118,20 +122,21 @@ class _ProfileState extends State<Profile> {
                                 height: 45,
                                 minWidth: double.infinity,
                                 child: FlatButton(
-                                  color: Colors.grey[800],
+                                  color: Colors.teal,
                                   child: Text(
                                     'Guardar',
                                     style: TextStyle(color: Colors.white),
                                   ),
                                   onPressed: () {
-                                    if (appState.nameController.text.length!=0) {
-                                      print(appState.nameController.text);
-                                      appState.saveName(
-                                          appState.phone,
+                                    if (appState
+                                            .nameController.text.isNotEmpty &&
+                                        appState.nameController.text !=
+                                            appState.name) {
+                                      appState.saveName(appState.phone,
                                           appState.nameController.text);
-                                      appState.savePicture(
-                                          context, appState.phone);
                                     }
+                                    appState.savePicture(
+                                        context, appState.phone);
                                   },
                                 ),
                               )
@@ -141,7 +146,6 @@ class _ProfileState extends State<Profile> {
                       ),
                     ],
                   ),
-                  )
-                ));
+                )));
   }
 }

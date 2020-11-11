@@ -3,19 +3,20 @@ import 'package:flutter/widgets.dart';
 import 'package:location/location.dart';
 import 'package:chofer/screens/Home.dart';
 
-class LocationState with ChangeNotifier{
-
+class LocationState with ChangeNotifier {
   Location location = new Location();
   bool serviceEnabled = true;
   PermissionStatus _permissionGranted;
 
   //ENABLES THE LOCATION DEVICE
-  void enableService(appState,BuildContext context) async {
+  void enableService(appState, BuildContext context) async {
     serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
       if (serviceEnabled) {
         appState.getUserLocation();
+        await appState.getPhoneNumber();
+        await appState.getUserName();
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => Home()));
       } else {
@@ -23,11 +24,14 @@ class LocationState with ChangeNotifier{
       }
     } else {
       appState.getUserLocation();
+      await appState.getPhoneNumber();
+      await appState.getUserName();
       Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
     }
   }
+
   //ENABLES THE LOCATION PERMISSIONS
-   void askPermission(appState,BuildContext context) async {
+  void askPermission(appState, BuildContext context) async {
     _permissionGranted = await location.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
       _permissionGranted = await location.requestPermission();
@@ -37,11 +41,7 @@ class LocationState with ChangeNotifier{
     }
 
     if (_permissionGranted == PermissionStatus.granted) {
-      enableService(appState,context);
+      enableService(appState, context);
     }
   }
-
-
-  
-
 }

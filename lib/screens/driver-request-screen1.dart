@@ -13,7 +13,8 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    appState.nameController = TextEditingController(text: appState.name);
+    appState.registerNameController =
+        TextEditingController(text: appState.tempName);
     appState.addressController = TextEditingController(text: appState.address);
     return Scaffold(
       appBar: AppBar(
@@ -36,7 +37,7 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                       fontWeight: FontWeight.bold,
                       color: Colors.grey[700])),
               Text(
-                'Danos información sobre ti',
+                'Necesitamos información sobre ti',
                 style: TextStyle(color: Colors.grey[700]),
                 textAlign: TextAlign.center,
               ),
@@ -44,7 +45,7 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                 height: 30,
               ),
               Center(
-                child: appState.image == null && appState.downloadURL == null
+                child: appState.downloadURL.isEmpty
                     ? Stack(
                         children: <Widget>[
                           CircleAvatar(
@@ -57,45 +58,41 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                             ),
                           ),
                           FloatingActionButton(
-                              backgroundColor: Colors.deepPurpleAccent,
+                              backgroundColor: Colors.teal,
                               onPressed: () => appState.getImage(),
                               child: Icon(Icons.add_a_photo))
                         ],
                       )
-                    : appState.image != null && appState.downloadURL != null
-                        ? Stack(
-                            children: <Widget>[
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(200),
-                                child: Image.file(appState.image,
-                                    height: 200, width: 200, fit: BoxFit.cover),
-                              ),
-                              FloatingActionButton(
-                                  backgroundColor: Colors.deepPurpleAccent,
-                                  onPressed: () => appState.getImage(),
-                                  child: Icon(Icons.add_a_photo)),
-                            ],
-                          )
-                        : Stack(
-                            children: <Widget>[
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(200),
-                                child: Image.network(appState.downloadURL,
-                                    height: 200, width: 200, fit: BoxFit.cover),
-                              ),
-                              FloatingActionButton(
-                                  backgroundColor: Colors.deepPurpleAccent,
-                                  onPressed: () => appState.getImage(),
-                                  child: Icon(Icons.add_a_photo)),
-                            ],
+                    : Stack(
+                        children: <Widget>[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(200),
+                            child: Image.network(appState.downloadURL,
+                                height: 200, width: 200, fit: BoxFit.cover),
                           ),
+                          FloatingActionButton(
+                              backgroundColor: Colors.teal,
+                              onPressed: () => appState.getImage(),
+                              child: Icon(Icons.add_a_photo)),
+                        ],
+                      ),
               ),
               SizedBox(
                 height: 16,
               ),
               TextFormField(
-                controller: appState.nameController,
+                controller: appState.registerNameController,
                 decoration: InputDecoration(
+                    focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorStyle: TextStyle(color: Colors.teal),
+                    errorText: !appState.validName
+                        ? "Ingresa tu nombre completo"
+                        : null,
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: Colors.grey[200])),
@@ -107,6 +104,15 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
               TextFormField(
                 controller: appState.addressController,
                 decoration: InputDecoration(
+                    focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: Colors.teal)),
+                    errorStyle: TextStyle(color: Colors.teal),
+                    errorText:
+                        !appState.validAddres ? "Ingresa tu domcilio" : null,
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: Colors.grey[200])),
@@ -123,16 +129,28 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                   textColor: Colors.white,
                   padding: EdgeInsets.all(16),
                   onPressed: () {
-                    if (appState.nameController.text.length != 0 &&
-                        appState.addressController.text.length != 0) {
-                      appState.nextScreen(appState.nameController.text,appState.addressController.text);
+                    appState.registerNameController.text.isEmpty
+                        ? appState.validateNameInput(
+                            false, appState.registerNameController.text)
+                        : appState.validateNameInput(
+                            true, appState.registerNameController.text);
+
+                    appState.addressController.text.isEmpty
+                        ? appState.validateAddresInput(
+                            false, appState.addressController.text)
+                        : appState.validateAddresInput(
+                            true, appState.addressController.text);
+
+                    if (appState.validName && appState.validAddres) {
+                      appState.nextScreen(appState.registerNameController.text,
+                          appState.addressController.text);
                       Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => DriverRequestScreen2()));
                     }
                   },
-                  color: Colors.deepPurpleAccent,
+                  color: Colors.teal,
                 ),
               )
             ],

@@ -20,8 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   cloud_firestore: ^0.13.6
-  firebase_auth: ^0.16.1
-  firebase_database: ^3.1.6
+  firebase_auth: ^0.15.5+3
   google_maps_flutter: ^0.5.26+3
   rxdart: any
   location: ^3.0.2
@@ -32,13 +31,14 @@ dependencies:
   provider: ^3.0.0+1
   search_map_place: ^0.3.0
   simple_animations: ^2.2.1
-  flutter_svg: ^0.17.1 #NOT INFORMATION IF WORKS ON IOS
   path_provider: ^1.6.10
   pin_code_fields: ^3.0.1
   uuid: 2.1.0
   image_picker: ^0.6.7+2
   audioplayers: ^0.15.1
   firebase_storage: ^3.1.6
+  fluttertoast: ^7.1.1
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -62,13 +62,14 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-   - assets/bg.svg
-   - assets/msg.svg
-   - assets/location.svg
-   - assets/user.svg
-   - assets/origin.svg
-   - assets/empty.svg
+  #  - assets/bg.svg
+   - assets/msg.png
+   - assets/location.png
+  #  - assets/user.svg
+  #  - assets/origin.svg
+   - assets/empty.png
    - assets/car.png
+   - assets/bg.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,7 +1,6 @@
 import 'package:chofer/states/app-state.dart';
 import 'package:chofer/states/location-state.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 class EnableLocation extends StatefulWidget {
@@ -10,24 +9,25 @@ class EnableLocation extends StatefulWidget {
 }
 
 class _EnableLocationState extends State<EnableLocation> {
-  
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final locationState = Provider.of<LocationState>(context);
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Container(
             padding: EdgeInsets.all(60),
             child: Column(
               children: <Widget>[
-                SvgPicture.asset(
-                  'assets/location.svg',
-                  height: 300,
+                SizedBox(height: 50),
+                Image.asset(
+                  'assets/location.png',
+                  height: 330,
                 ),
                 Text('Activa tu ubicación',
                     style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: Colors.grey[700])),
                 Text(
@@ -46,7 +46,7 @@ class _EnableLocationState extends State<EnableLocation> {
                     child:
                         Text('Activar', style: TextStyle(color: Colors.white)),
                     onPressed: () {
-                      locationState.askPermission(appState,context);
+                      locationState.askPermission(appState, context);
                     },
                   ),
                 )

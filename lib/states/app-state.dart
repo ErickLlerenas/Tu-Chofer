@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 import 'package:location/location.dart' as l;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class AppState with ChangeNotifier {
   static LatLng _initialPosition;
@@ -40,16 +41,25 @@ class AppState with ChangeNotifier {
   l.PermissionStatus _permissionGranted;
   String _phone;
   String _name;
+  String tempName;
+  bool validName = true;
+  bool validAddres = true;
+  bool validCarName = true;
+  bool validCarModel = true;
+  bool validCarPlates = true;
   File image;
   File carImage;
   String downloadURL;
   String address;
   String carName;
   String carModel;
+  String carPlates;
   TextEditingController nameController;
+  TextEditingController registerNameController;
   TextEditingController addressController;
   TextEditingController carNameController;
   TextEditingController carModelController;
+  TextEditingController carPlatesController;
   String _locality;
   final picker = ImagePicker();
   int costoBase = 1;
@@ -74,6 +84,7 @@ class AppState with ChangeNotifier {
   //GETS THE USER NAME
   Future getUserName() async {
     _name = await readName();
+    tempName = _name;
     notifyListeners();
   }
 
@@ -215,7 +226,7 @@ class AppState with ChangeNotifier {
   void onMapCreated(GoogleMapController controller) {
     _mapController = controller;
     String _mapStyle =
-        '[{"elementType":"geometry","stylers":[{"color":"#ebe3cd"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#523735"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#f5f1e6"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#c9b2a6"}]},{"featureType":"administrative.land_parcel","elementType":"geometry.stroke","stylers":[{"color":"#dcd2be"}]},{"featureType":"administrative.land_parcel","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"administrative.land_parcel","elementType":"labels.text.fill","stylers":[{"color":"#ae9e90"}]},{"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#dfd2ae"}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#dfd2ae"}]},{"featureType":"poi","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#93817c"}]},{"featureType":"poi.business","stylers":[{"visibility":"off"}]},{"featureType":"poi.park","elementType":"geometry.fill","stylers":[{"color":"#a5b076"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#447530"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#f5f1e6"}]},{"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#fdfcf8"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#f8c967"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#e9bc62"}]},{"featureType":"road.highway.controlled_access","elementType":"geometry","stylers":[{"color":"#e98d58"}]},{"featureType":"road.highway.controlled_access","elementType":"geometry.stroke","stylers":[{"color":"#db8555"}]},{"featureType":"road.local","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"road.local","elementType":"labels.text.fill","stylers":[{"color":"#806b63"}]},{"featureType":"transit","stylers":[{"visibility":"off"}]},{"featureType":"transit.line","elementType":"geometry","stylers":[{"color":"#dfd2ae"}]},{"featureType":"transit.line","elementType":"labels.text.fill","stylers":[{"color":"#8f7d77"}]},{"featureType":"transit.line","elementType":"labels.text.stroke","stylers":[{"color":"#ebe3cd"}]},{"featureType":"transit.station","elementType":"geometry","stylers":[{"color":"#dfd2ae"}]},{"featureType":"water","elementType":"geometry.fill","stylers":[{"color":"#b9d3c2"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#92998d"}]}]';
+        '[ { "featureType": "all", "elementType": "labels.text.fill", "stylers": [ { "color": "#7c93a3" }, { "lightness": "-10" } ] }, { "featureType": "administrative.country", "elementType": "geometry", "stylers": [ { "visibility": "on" } ] }, { "featureType": "administrative.country", "elementType": "geometry.stroke", "stylers": [ { "color": "#a0a4a5" } ] }, { "featureType": "administrative.province", "elementType": "geometry.stroke", "stylers": [ { "color": "#62838e" } ] }, { "featureType": "landscape", "elementType": "geometry.fill", "stylers": [ { "color": "#dde3e3" } ] }, { "featureType": "landscape.man_made", "elementType": "geometry.stroke", "stylers": [ { "color": "#3f4a51" }, { "weight": "0.30" } ] }, { "featureType": "poi", "elementType": "all", "stylers": [ { "visibility": "simplified" } ] }, { "featureType": "poi.attraction", "elementType": "all", "stylers": [ { "visibility": "on" } ] }, { "featureType": "poi.business", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.government", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.park", "elementType": "all", "stylers": [ { "visibility": "on" } ] }, { "featureType": "poi.place_of_worship", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.school", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.sports_complex", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "road", "elementType": "all", "stylers": [ { "saturation": "-100" }, { "visibility": "on" } ] }, { "featureType": "road", "elementType": "geometry.stroke", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [ { "color": "#bbcacf" } ] }, { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [ { "lightness": "0" }, { "color": "#bbcacf" }, { "weight": "0.50" } ] }, { "featureType": "road.highway", "elementType": "labels", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway", "elementType": "labels.text", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway.controlled_access", "elementType": "geometry.fill", "stylers": [ { "color": "#ffffff" } ] }, { "featureType": "road.highway.controlled_access", "elementType": "geometry.stroke", "stylers": [ { "color": "#a9b4b8" } ] }, { "featureType": "road.arterial", "elementType": "labels.icon", "stylers": [ { "invert_lightness": true }, { "saturation": "-7" }, { "lightness": "3" }, { "gamma": "1.80" }, { "weight": "0.01" } ] }, { "featureType": "transit", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "water", "elementType": "geometry.fill", "stylers": [ { "color": "#a3c7df" } ] } ]';
     _mapController.setMapStyle(_mapStyle);
     notifyListeners();
   }
@@ -291,6 +302,36 @@ class AppState with ChangeNotifier {
     }
   }
 
+  void validateNameInput(bool isValid, String newName) {
+    validName = isValid;
+    tempName = newName;
+    notifyListeners();
+  }
+
+  void validateAddresInput(bool isValid, String newAddress) {
+    validAddres = isValid;
+    address = newAddress;
+    notifyListeners();
+  }
+
+  void validateCarName(bool isValid, String newName) {
+    validCarName = isValid;
+    carName = newName;
+    notifyListeners();
+  }
+
+  void validateCarModel(bool isValid, String newModel) {
+    validCarModel = isValid;
+    carModel = newModel;
+    notifyListeners();
+  }
+
+  void validateCarPlates(bool isValid, String newPlates) {
+    validCarPlates = isValid;
+    carPlates = newPlates;
+    notifyListeners();
+  }
+
   // GET THE LOCAL PATH TO SAVE THE PHONE NUMBER
   Future<String> get _localPathNumber async {
     final directory = await getApplicationDocumentsDirectory();
@@ -356,13 +397,21 @@ class AppState with ChangeNotifier {
         .document(id)
         .updateData({'name': newName});
     notifyListeners();
+    Fluttertoast.showToast(
+        msg: "Nombre guardado",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.teal,
+        textColor: Colors.white,
+        fontSize: 16.0);
   }
 
   // GET THE IMAGE FROM FIREBASE
   Future getImage() async {
     final pickedFile = await picker.getImage(
         source: ImageSource.gallery,
-        imageQuality: 10,
+        imageQuality: 25,
         maxHeight: 2048,
         maxWidth: 2048);
     if (pickedFile != null) image = File(pickedFile.path);
@@ -372,7 +421,7 @@ class AppState with ChangeNotifier {
   Future getCarImage() async {
     final pickedFile = await picker.getImage(
         source: ImageSource.gallery,
-        imageQuality: 10,
+        imageQuality: 35,
         maxHeight: 2048,
         maxWidth: 2048);
     if (pickedFile != null) carImage = File(pickedFile.path);
@@ -396,7 +445,17 @@ class AppState with ChangeNotifier {
       StorageUploadTask uploadTask = storageReference.putFile(image);
       await uploadTask.onComplete;
       if (uploadTask.isComplete) {
+        image = null;
+        await downloadProfilePicture(phone);
         Navigator.pop(context);
+        Fluttertoast.showToast(
+            msg: "Foto guardada",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.teal,
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
     }
     notifyListeners();

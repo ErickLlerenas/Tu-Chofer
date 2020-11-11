@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:chofer/screens/enable-location.dart';
 import 'package:chofer/screens/login.dart';
@@ -7,6 +8,8 @@ import 'package:flutter/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginState with ChangeNotifier {
   TextEditingController _phoneController = TextEditingController();
@@ -17,6 +20,11 @@ class LoginState with ChangeNotifier {
   String verificationID;
   FirebaseAuth auth;
   bool isRegistred = true;
+  bool validName = true;
+  bool validPhone = true;
+  bool isLoading = false;
+  StreamController<ErrorAnimationType> errorController =
+      StreamController<ErrorAnimationType>();
 
   get phoneController => _phoneController;
   get nameController => _nameController;
@@ -29,81 +37,107 @@ class LoginState with ChangeNotifier {
     getUserName();
   }
 
-  //CHECKS IF THER IS A PHONE NUMBER ALREADY REGISTERED SO THE USER SHOULDN'T LOGIN AGAIN
+  //GETS THE PHONE NUMBER
+  //CHECKS IF THERE IS A PHONE NUMBER ALREADY REGISTERED, SO THE USER SHOULDN'T LOGIN AGAIN
   Future getPhoneNumber() async {
     _phone = await readPhoneNumber();
-    print(_phone);
-    if(_phone!=null)
-      isRegistred=true;
+    if (_phone.length == 0)
+      isRegistred = false;
     else
-      isRegistred=false;
+      isRegistred = true;
     notifyListeners();
   }
 
   //GETS THE USER NAME
   Future getUserName() async {
     _name = await readName();
-    print(_name);
     notifyListeners();
   }
 
-  // LOGINS THE USER WITH PHONE VERIFICATION
+  // LOGINS THE USER WITH FIREBASE PHONE VERIFICATION
   Future loginUser(String phone, BuildContext context) async {
-    FirebaseAuth _auth = FirebaseAuth.instance;
-    auth = _auth;
-
-    _auth.verifyPhoneNumber(
-        phoneNumber: "+52" + phone,
-        timeout: Duration(seconds: 120),
+    isLoading = true;
+    notifyListeners();
+    auth = FirebaseAuth.instance;
+    auth.verifyPhoneNumber(
+        phoneNumber: "+52$phone",
+        timeout: const Duration(seconds: 60),
         verificationCompleted: (AuthCredential credential) async {
-          String credencial = credential.toString().replaceRange(0 , 12, '');
-          credencial = credencial.substring(0,credencial.length-1);
-          Map mapa = json.decode(credencial);
-          codeController.text = mapa['zzb'];
-          notifyListeners();
-          AuthResult result = await _auth.signInWithCredential(credential);
-          FirebaseUser user = result.user;
-          if (user != null) {
+          AuthResult result = await auth.signInWithCredential(credential);
+          if (result.user != null) {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => EnableLocation()));
-            writePhone(phoneController.text.trim());  
-            writeName(nameController.text);  
+            writePhone(phoneController.text.trim());
+            writeName(nameController.text);
+            isLoading = false;
+            await saveUserToFirebase(
+                phoneController.text.trim(), nameController.text);
+            notifyListeners();
 
-          } else {
-            print("Error");
+            // AUTO COMPLETE ON ENABLELOCATION SCREEN
+            String credencial = credential.toString().replaceRange(0, 12, '');
+            credencial = credencial.substring(0, credencial.length - 1);
+            Map mapa = json.decode(credencial);
+            codeController.text = mapa['zzb'];
+            notifyListeners();
           }
         },
         verificationFailed: (AuthException exception) {
-          print("FAILED");
-          print(exception.message);
-          Navigator.push(context,
-                MaterialPageRoute(builder: (context) => Login()));
+          print("FAILED: ${exception.message}");
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => Login()));
         },
         codeSent: (String verificationId, [int forceResendingToken]) {
           verificationID = verificationId;
           Navigator.push(context,
-                MaterialPageRoute(builder: (context) => VerificationCode()));
+              MaterialPageRoute(builder: (context) => VerificationCode()));
+          isLoading = false;
+          notifyListeners();
         },
-        codeAutoRetrievalTimeout: (String id){
+        codeAutoRetrievalTimeout: (String id) {
           verificationID = id;
         });
     notifyListeners();
   }
 
+  // SAVE THE USER TO FIREBASE
+  Future saveUserToFirebase(String id, String name) async {
+    await Firestore.instance
+        .collection('Users')
+        .document(id)
+        .setData({'name': name});
+    notifyListeners();
+  }
+
   // VERIFYS THE CODE NUMBER SENT
-  Future verifyCode(String code, BuildContext context)async {
-    AuthCredential credential = PhoneAuthProvider.getCredential(
-        verificationId: verificationID, smsCode: code);
-    AuthResult result = await auth.signInWithCredential(credential);
-    FirebaseUser user = result.user;
-    
-    if (user != null) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => EnableLocation()));
-      writePhone(phoneController.text.trim());  
-      writeName(nameController.text);  
-    } else {
-      print("Error");
+  Future verifyCode(String code, BuildContext context) async {
+    try {
+      AuthCredential credential = PhoneAuthProvider.getCredential(
+          verificationId: verificationID, smsCode: code);
+      AuthResult result = await auth.signInWithCredential(credential);
+      FirebaseUser user = result.user;
+
+      if (user != null) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => EnableLocation()));
+        writePhone(phoneController.text.trim());
+        writeName(nameController.text);
+        await saveUserToFirebase(
+            phoneController.text.trim(), nameController.text);
+      }
+    } catch (error) {
+      errorController.add(ErrorAnimationType.shake);
     }
+  }
+
+  void validateNameInput(bool isValid) {
+    validName = isValid;
+    notifyListeners();
+  }
+
+  void validatePhoneInput(bool isValid) {
+    validPhone = isValid;
+    notifyListeners();
   }
 
   // GET THE LOCAL PATH TO SAVE THE PHONE NUMBER

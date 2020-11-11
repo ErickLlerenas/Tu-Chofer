@@ -1,5 +1,4 @@
 import 'package:chofer/screens/origin.dart';
-import 'package:chofer/states/login-state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chofer/states/app-state.dart';
@@ -15,7 +14,6 @@ class _FooterState extends State<Footer> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final loginState = Provider.of<LoginState>(context);
 
     return DraggableScrollableSheet(
         expand: true,
@@ -39,8 +37,10 @@ class _FooterState extends State<Footer> {
                   ),
                   ListTile(
                     onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Destination()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Destination()));
                     },
                     leading: Icon(Icons.location_on, color: Colors.red[400]),
                     title: Text("Destino"),
@@ -68,11 +68,11 @@ class _FooterState extends State<Footer> {
                                 style: TextStyle(color: Colors.white),
                               ),
                               onPressed: () {
-                                _showDialog(loginState.phone);
+                                _showDialog(appState.phone);
                                 print(appState.origin);
                                 Firestore.instance
                                     .collection('Users')
-                                    .document('${loginState.phone}')
+                                    .document(appState.phone)
                                     .updateData({
                                   'isAskingService': true,
                                   'destinationName':
@@ -85,7 +85,7 @@ class _FooterState extends State<Footer> {
                                   'destination': new GeoPoint(
                                       appState.destination.latitude,
                                       appState.destination.longitude),
-                                  'phone': loginState.phone,
+                                  'phone': appState.phone,
                                   'price': appState.precio,
                                   'distance': appState.distance,
                                   'duration': appState.duration
@@ -109,7 +109,12 @@ class _FooterState extends State<Footer> {
         return AlertDialog(
           title: Column(
             children: <Widget>[
-              Text("Buscando choferes...",textAlign: TextAlign.center,style: TextStyle(color:Colors.grey[700],fontWeight: FontWeight.bold),),
+              Text(
+                "Buscando choferes...",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Colors.grey[700], fontWeight: FontWeight.bold),
+              ),
               SizedBox(
                 height: 30,
               ),
@@ -118,16 +123,19 @@ class _FooterState extends State<Footer> {
           ),
           content: Container(
               child: FlatButton(
-                color: Colors.red[400],
-                child: Text('Cancelar',style: TextStyle(color:Colors.white),),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Firestore.instance
-                      .collection('Users')
-                      .document('$phone')
-                      .updateData({'isAskingService': false});
-                },
-              )),
+            color: Colors.red[400],
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              Firestore.instance
+                  .collection('Users')
+                  .document('$phone')
+                  .updateData({'isAskingService': false});
+            },
+          )),
         );
       },
     );
