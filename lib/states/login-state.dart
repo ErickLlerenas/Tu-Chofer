@@ -59,11 +59,13 @@ class LoginState with ChangeNotifier {
     isLoading = true;
     notifyListeners();
     auth = FirebaseAuth.instance;
+    auth.setLanguageCode('es');
     auth.verifyPhoneNumber(
         phoneNumber: "+52$phone",
         timeout: const Duration(seconds: 60),
         verificationCompleted: (AuthCredential credential) async {
           AuthResult result = await auth.signInWithCredential(credential);
+          print("AUTOMATICALLY LOGED IN");
           if (result.user != null) {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => EnableLocation()));
@@ -74,7 +76,7 @@ class LoginState with ChangeNotifier {
                 phoneController.text.trim(), nameController.text);
             notifyListeners();
 
-            // AUTO COMPLETE ON ENABLELOCATION SCREEN
+            // IF GETS THE SMS CODE AUTOMATICALLY ,AUTO COMPLETE THE CODE ON VERIFY CODE SCREEN
             String credencial = credential.toString().replaceRange(0, 12, '');
             credencial = credencial.substring(0, credencial.length - 1);
             Map mapa = json.decode(credencial);
@@ -105,8 +107,16 @@ class LoginState with ChangeNotifier {
     await Firestore.instance
         .collection('Users')
         .document(id)
-        .setData({'name': name});
-    notifyListeners();
+        .get()
+        .then((user) async {
+      if (!user.exists) {
+        await Firestore.instance
+            .collection('Users')
+            .document(id)
+            .setData({'name': name, 'isAskingService': false, 'phone': id});
+        notifyListeners();
+      }
+    });
   }
 
   // VERIFYS THE CODE NUMBER SENT

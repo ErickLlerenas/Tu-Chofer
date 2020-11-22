@@ -22,7 +22,7 @@ class _LoginState extends State<Login> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Image.asset(
-                    'assets/bg.png',
+                    'assets/login.png',
                     height: 330,
                   ),
                   Text('Tu Chofer',
@@ -42,13 +42,11 @@ class _LoginState extends State<Login> {
                     decoration: InputDecoration(
                         focusedErrorBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(8)),
-                            borderSide:
-                                BorderSide(color: Colors.deepPurpleAccent)),
+                            borderSide: BorderSide(color: Colors.orange)),
                         errorBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(8)),
-                            borderSide:
-                                BorderSide(color: Colors.deepPurpleAccent)),
-                        errorStyle: TextStyle(color: Colors.deepPurpleAccent),
+                            borderSide: BorderSide(color: Colors.orange)),
+                        errorStyle: TextStyle(color: Colors.orange),
                         errorText: !loginState.validName
                             ? "Ingresa tu nombre completo"
                             : null,
@@ -66,13 +64,11 @@ class _LoginState extends State<Login> {
                     decoration: InputDecoration(
                         focusedErrorBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(8)),
-                            borderSide:
-                                BorderSide(color: Colors.deepPurpleAccent)),
+                            borderSide: BorderSide(color: Colors.orange)),
                         errorBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(8)),
-                            borderSide:
-                                BorderSide(color: Colors.deepPurpleAccent)),
-                        errorStyle: TextStyle(color: Colors.deepPurpleAccent),
+                            borderSide: BorderSide(color: Colors.orange)),
+                        errorStyle: TextStyle(color: Colors.orange),
                         errorText: !loginState.validPhone
                             ? "Ingresa los 10 digitos de tu telefono"
                             : null,
@@ -110,13 +106,12 @@ class _LoginState extends State<Login> {
                                     context);
                               }
                             },
-                            color: Colors.deepPurpleAccent,
+                            color: Colors.orange,
                           )
                         : LinearProgressIndicator(
                             minHeight: 50,
                             backgroundColor: Colors.deepPurple[50],
-                            valueColor: AlwaysStoppedAnimation(
-                                Colors.deepPurpleAccent)),
+                            valueColor: AlwaysStoppedAnimation(Colors.orange)),
                   )
                 ],
               ),

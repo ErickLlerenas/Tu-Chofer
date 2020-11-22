@@ -16,15 +16,15 @@ class ToInput extends StatelessWidget {
           children: <Widget>[
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
-                  darkMode: false,
-                  iconColor: Colors.grey[700],
+              darkMode: false,
+              iconColor: Colors.grey[700],
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
               placeholder: "Hola $firstName, ¿A dónde quieres ir?",
               // The language of the autocompletion
               language: 'es',
               // The position used to give better recomendations. In this case we are using the user position
               location: appState.initialPosition,
-              radius: 30000,
+              radius: 20000,
               onSelected: (Place place) async {
                 final geolocation = await place.geolocation;
                 // Will animate the GoogleMap camera, taking us to the selected position with an appropriate zoom

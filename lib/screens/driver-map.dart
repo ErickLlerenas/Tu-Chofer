@@ -30,8 +30,16 @@ class _DriverMapState extends State<DriverMap> {
     return byteData.buffer.asUint8List();
   }
 
-  void updateCarMarker(LocationData newLocalData, Uint8List imageData) {
+  void updateCarMarker(
+      LocationData newLocalData, Uint8List imageData, appState) async {
     LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
+    await Firestore.instance
+        .collection('Drivers')
+        .document(appState.phone)
+        .updateData({
+      'currentLocation':
+          new GeoPoint(newLocalData.latitude, newLocalData.longitude),
+    });
     setState(() {
       _marker = Marker(
           markerId: MarkerId(Uuid().v1()),
@@ -49,11 +57,11 @@ class _DriverMapState extends State<DriverMap> {
     _marker = null;
   }
 
-  void getCurrentLocation() async {
+  void getCurrentLocation(appState) async {
     try {
       Uint8List imageData = await getMarker();
       var location = await _location.getLocation();
-      updateCarMarker(location, imageData);
+      updateCarMarker(location, imageData, appState);
 
       if (locationSubscription != null) {
         locationSubscription.cancel();
@@ -69,7 +77,7 @@ class _DriverMapState extends State<DriverMap> {
                     zoom: 16.5,
                     target: LatLng(
                         newLocalData.latitude, newLocalData.longitude))));
-            updateCarMarker(newLocalData, imageData);
+            updateCarMarker(newLocalData, imageData, appState);
           }
         }
       });
@@ -78,7 +86,8 @@ class _DriverMapState extends State<DriverMap> {
 
   void onMapCreated(GoogleMapController controller) {
     _mapController = controller;
-    String _mapStyle = '[{"elementType":"geometry","stylers":[{"color":"#212121"}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},{"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#757575"}]},{"featureType":"administrative.country","elementType":"labels.text.fill","stylers":[{"color":"#9e9e9e"}]},{"featureType":"administrative.land_parcel","stylers":[{"visibility":"off"}]},{"featureType":"administrative.land_parcel","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"color":"#bdbdbd"}]},{"featureType":"poi","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"featureType":"poi.business","stylers":[{"visibility":"off"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},{"featureType":"poi.park","elementType":"labels.text.stroke","stylers":[{"color":"#1b1b1b"}]},{"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},{"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#8a8a8a"}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},{"featureType":"road.highway.controlled_access","elementType":"geometry","stylers":[{"color":"#4e4e4e"}]},{"featureType":"road.local","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"road.local","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},{"featureType":"transit","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#17263C"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#3d3d3d"}]}]';
+    String _mapStyle =
+        '[{"elementType":"geometry","stylers":[{"color":"#212121"}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},{"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#757575"}]},{"featureType":"administrative.country","elementType":"labels.text.fill","stylers":[{"color":"#9e9e9e"}]},{"featureType":"administrative.land_parcel","stylers":[{"visibility":"off"}]},{"featureType":"administrative.land_parcel","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"color":"#bdbdbd"}]},{"featureType":"poi","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"featureType":"poi.business","stylers":[{"visibility":"off"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},{"featureType":"poi.park","elementType":"labels.text.stroke","stylers":[{"color":"#1b1b1b"}]},{"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},{"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#8a8a8a"}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},{"featureType":"road.highway.controlled_access","elementType":"geometry","stylers":[{"color":"#4e4e4e"}]},{"featureType":"road.local","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"road.local","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},{"featureType":"transit","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#17263C"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#3d3d3d"}]}]';
     _mapController.setMapStyle(_mapStyle);
   }
 
@@ -97,16 +106,11 @@ class _DriverMapState extends State<DriverMap> {
     return Scaffold(
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.local_taxi),
-          backgroundColor: isActive ? Colors.deepPurpleAccent : Colors.red,
+          backgroundColor: isActive ? Colors.orange : Colors.black87,
           onPressed: () {
             setState(() {
               isActive = !isActive;
-              print(isActive);
-
-              if (isActive)
-                getCurrentLocation();
-              else
-                clearCar();
+              isActive ? getCurrentLocation(appState) : clearCar();
             });
           },
         ),
@@ -119,9 +123,14 @@ class _DriverMapState extends State<DriverMap> {
               if (!snapshot.hasData) return Container();
 
               if (isActive) {
-                if (snapshot.data.documents[0]['isAskingService']) {
-                  // WidgetsBinding.instance.addPostFrameCallback((_) => _showDialog(context,snapshot.data.documents[0]['originName'],snapshot.data.documents[0]['destinationName'],snapshot.data.documents[0]['phone']));
-                }
+                print(snapshot.data.documents[0]['isAskingService']);
+                snapshot.data.documents.forEach((DocumentSnapshot document) {
+                  print('ASDASDAS XDXD: ${document['isAskingService']}');
+                });
+
+                // if (snapshot.data.documents[0]['isAskingService']) {
+                //   WidgetsBinding.instance.addPostFrameCallback((_) => _showDialog(context,snapshot.data.documents[0]['originName'],snapshot.data.documents[0]['destinationName'],snapshot.data.documents[0]['phone']));
+                // }
               }
               return Stack(children: <Widget>[
                 GoogleMap(
@@ -151,7 +160,7 @@ class _DriverMapState extends State<DriverMap> {
                   left: 8,
                   top: 25,
                   child: IconButton(
-                    icon: Icon(Icons.menu,color:Colors.white),
+                    icon: Icon(Icons.menu, color: Colors.white),
                     onPressed: () => _scaffoldKey.currentState.openDrawer(),
                   ),
                 ),

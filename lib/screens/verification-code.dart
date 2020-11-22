@@ -20,6 +20,7 @@ class _VerificationCodeState extends State<VerificationCode> {
             padding: EdgeInsets.all(50),
             child: Column(
               children: <Widget>[
+                SizedBox(height: 40),
                 Image.asset(
                   'assets/msg.png',
                   height: 300,
@@ -46,7 +47,7 @@ class _VerificationCodeState extends State<VerificationCode> {
                     inactiveFillColor: Colors.white,
                     inactiveColor: Colors.grey[700],
                     selectedFillColor: Colors.white,
-                    selectedColor: Colors.deepPurpleAccent,
+                    selectedColor: Colors.orange,
                     shape: PinCodeFieldShape.box,
                     borderRadius: BorderRadius.circular(5),
                     fieldHeight: 50,
@@ -85,7 +86,7 @@ class _VerificationCodeState extends State<VerificationCode> {
                 Container(
                   width: double.infinity,
                   child: FlatButton(
-                    color: Colors.teal[400],
+                    color: Colors.orange,
                     padding: EdgeInsets.all(16),
                     child: Text('Verificar',
                         style: TextStyle(color: Colors.white)),

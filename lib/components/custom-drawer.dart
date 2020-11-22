@@ -1,4 +1,5 @@
 import 'package:chofer/screens/Home.dart';
+import 'package:chofer/screens/driver-request-pending.dart';
 import 'package:chofer/screens/driver-request-screen1.dart';
 import 'package:chofer/screens/earnings-and-payments.dart';
 import 'package:chofer/screens/history.dart';
@@ -22,7 +23,7 @@ class CustomDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: Colors.teal[800]),
+            decoration: BoxDecoration(color: Colors.black87),
             accountName: Text("${appState.name}"),
             accountEmail: Text(
               "(${appState.phone[0]}${appState.phone[1]}${appState.phone[2]})-${appState.phone[3]}${appState.phone[4]}${appState.phone[5]}-${appState.phone[6]}${appState.phone[7]}${appState.phone[8]}${appState.phone[9]}",
@@ -41,7 +42,10 @@ class CustomDrawer extends StatelessWidget {
                         (BuildContext context, Widget child,
                             ImageChunkEvent loadingProgress) {
                       if (loadingProgress == null) return child;
-                      return CircularProgressIndicator();
+                      return CircularProgressIndicator(
+                        valueColor:
+                            new AlwaysStoppedAnimation<Color>(Colors.orange),
+                      );
                     }, height: 50, width: 50, fit: BoxFit.cover),
                   ),
           ),
@@ -78,21 +82,26 @@ class CustomDrawer extends StatelessWidget {
                   context, MaterialPageRoute(builder: (context) => History()));
             },
           ),
-          Container(
-            child: ListTile(
-              leading: Icon(Icons.local_taxi),
-              title: Text('Quiero ser chofer'),
-              trailing: Icon(Icons.navigate_next),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => DriverRequestScreen1()));
-              },
-            ),
-          ),
+          appState.userIsDriver
+              ? Container()
+              : ListTile(
+                  leading: Icon(Icons.local_taxi),
+                  title: Text('Quiero ser chofer'),
+                  trailing: Icon(Icons.navigate_next),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    appState.userWantsToBeDriver
+                        ? Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DriverRequestPending()))
+                        : Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DriverRequestScreen1()));
+                  },
+                ),
           ListTile(
             leading: Icon(Icons.info_outline),
             title: Text('Terminos y condiciones'),
@@ -106,41 +115,41 @@ class CustomDrawer extends StatelessWidget {
                       builder: (context) => TermsAndConditions()));
             },
           ),
-          Divider(),
-          Container(
-            child: ListTile(
-              leading: Icon(Icons.my_location, color: Colors.teal),
-              title: Text(
-                'Mapa Chofer',
-                style: TextStyle(color: Colors.teal),
-              ),
-              trailing: Icon(Icons.navigate_next, color: Colors.teal),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => DriverMap()));
-              },
-            ),
-          ),
-          Container(
-            child: ListTile(
-              leading: Icon(Icons.attach_money, color: Colors.teal),
-              title: Text(
-                'Ganancias y pagos',
-                style: TextStyle(color: Colors.teal),
-              ),
-              trailing: Icon(Icons.navigate_next, color: Colors.teal),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => EarningsAndPayments()));
-              },
-            ),
-          ),
+          !appState.userIsDriver ? Container() : Divider(),
+          !appState.userIsDriver
+              ? Container()
+              : ListTile(
+                  leading: Icon(Icons.my_location, color: Colors.orange),
+                  title: Text(
+                    'Mapa Chofer',
+                    style: TextStyle(color: Colors.orange),
+                  ),
+                  trailing: Icon(Icons.navigate_next, color: Colors.orange),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => DriverMap()));
+                  },
+                ),
+          !appState.userIsDriver
+              ? Container()
+              : ListTile(
+                  leading: Icon(Icons.attach_money, color: Colors.orange),
+                  title: Text(
+                    'Ganancias y pagos',
+                    style: TextStyle(color: Colors.orange),
+                  ),
+                  trailing: Icon(Icons.navigate_next, color: Colors.orange),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => EarningsAndPayments()));
+                  },
+                ),
         ],
       ),
     );

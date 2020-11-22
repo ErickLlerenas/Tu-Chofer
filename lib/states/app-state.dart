@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:chofer/screens/driver-request-pending.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,7 +11,7 @@ import 'package:uuid/uuid.dart';
 import 'package:location/location.dart' as l;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:toast/toast.dart';
 
 class AppState with ChangeNotifier {
   static LatLng _initialPosition;
@@ -34,11 +35,10 @@ class AppState with ChangeNotifier {
   String duration;
   int distanceValue;
   int durationValue;
-  int precio;
   bool isLoadingPrices;
   l.Location location = new l.Location();
   bool serviceEnabled = true;
-  l.PermissionStatus _permissionGranted;
+  l.PermissionStatus permissionGranted;
   String _phone;
   String _name;
   String tempName;
@@ -47,9 +47,11 @@ class AppState with ChangeNotifier {
   bool validCarName = true;
   bool validCarModel = true;
   bool validCarPlates = true;
+  bool userWantsToBeDriver = false;
+  bool userIsDriver = false;
   File image;
   File carImage;
-  String downloadURL;
+  String downloadURL = "";
   String address;
   String carName;
   String carModel;
@@ -62,9 +64,10 @@ class AppState with ChangeNotifier {
   TextEditingController carPlatesController;
   String _locality;
   final picker = ImagePicker();
-  int costoBase = 1;
-  double costoKilometro = 3.07;
-  double costoMinuto = 1.6;
+  int costoServicio;
+  int costoBase;
+  double costoKilometro;
+  double costoMinuto;
 
   get phone => _phone;
   get name => _name;
@@ -77,7 +80,10 @@ class AppState with ChangeNotifier {
   // GETS THE USER PHONE NUMBER
   Future getPhoneNumber() async {
     _phone = await readPhoneNumber();
-    downloadProfilePicture(_phone);
+    if (_phone.isNotEmpty) {
+      downloadProfilePicture(_phone);
+      checkIfIsDriver(_phone);
+    }
     notifyListeners();
   }
 
@@ -86,6 +92,20 @@ class AppState with ChangeNotifier {
     _name = await readName();
     tempName = _name;
     notifyListeners();
+  }
+
+  Future getActualPrices() async {
+    await Firestore.instance
+        .collection('Prices')
+        .document('actualPrices')
+        .get()
+        .then((value) {
+      costoBase = value.data['costoBase'];
+      costoKilometro = value.data['costoKilometro'];
+      costoServicio = value.data['costoServicio'];
+      costoMinuto = value.data['costoMinuto'];
+      notifyListeners();
+    });
   }
 
   //  TO GET THE USERS LOCATION
@@ -147,7 +167,7 @@ class AppState with ChangeNotifier {
     return result;
   }
 
-  // DECODE POLY (THIS FUNCTION IS PROVIDED BY GOOGLE)
+  // DECODE POLY (THIS FUNCTION IS PROVIDED BY GOOGLE) DON'T CHANGE IT
   List _decodePoly(String poly) {
     var list = poly.codeUnits;
     var lList = new List();
@@ -181,8 +201,7 @@ class AppState with ChangeNotifier {
   //  SEND REQUEST
   void sendRequest(String intendedLocation) async {
     isLoadingPrices = false;
-    precio = 30;
-    costoBase = 1;
+    await getActualPrices();
     origin = _initialPosition;
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(intendedLocation);
@@ -206,7 +225,7 @@ class AppState with ChangeNotifier {
       if (_locality == "Comala") {
         costoBase += 10;
       }
-      precio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
+      costoServicio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
               costoBase +
               (durationValue / 60 * costoMinuto))
           .toInt();
@@ -235,8 +254,7 @@ class AppState with ChangeNotifier {
   void changeOrigin(LatLng origen) async {
     origin = origen;
     isLoadingPrices = false;
-    precio = 30;
-    costoBase = 1;
+    await getActualPrices();
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(destinationController.text);
     String route =
@@ -253,7 +271,7 @@ class AppState with ChangeNotifier {
       if (_locality == "Comala") {
         costoBase += 10;
       }
-      precio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
+      costoServicio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
               costoBase +
               (durationValue / 60 * costoMinuto))
           .toInt();
@@ -266,8 +284,7 @@ class AppState with ChangeNotifier {
   void changeDestination(LatLng dest, intendedLocation) async {
     destination = dest;
     isLoadingPrices = false;
-    precio = 30;
-    costoBase = 1;
+    await getActualPrices();
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(intendedLocation);
     String route = await _googleMapsServices.getRouteCoordinates(origin, dest);
@@ -281,7 +298,7 @@ class AppState with ChangeNotifier {
       if (_locality == "Comala") {
         costoBase += 10;
       }
-      precio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
+      costoServicio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
               costoBase +
               (durationValue / 60 * costoMinuto))
           .toInt();
@@ -293,13 +310,16 @@ class AppState with ChangeNotifier {
 
   // CHECKS IF THE USER HAS PERMISSIONS AND THE LOCATION ACTIVE
   void hasAlreadyPermissionsAndService() async {
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == l.PermissionStatus.granted) {
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == l.PermissionStatus.granted) {
       serviceEnabled = await location.serviceEnabled();
       if (serviceEnabled) {
         getUserLocation();
+      } else {
+        serviceEnabled = false;
       }
     }
+    notifyListeners();
   }
 
   void validateNameInput(bool isValid, String newName) {
@@ -389,7 +409,7 @@ class AppState with ChangeNotifier {
   }
 
   // SAVE THE NAME TO FIREBASE
-  Future saveName(String id, String newName) async {
+  Future saveName(String id, String newName, BuildContext context) async {
     _name = newName;
     await writeName(newName);
     await Firestore.instance
@@ -397,23 +417,17 @@ class AppState with ChangeNotifier {
         .document(id)
         .updateData({'name': newName});
     notifyListeners();
-    Fluttertoast.showToast(
-        msg: "Nombre guardado",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.teal,
-        textColor: Colors.white,
-        fontSize: 16.0);
+    Toast.show("Nombre guardado", context,
+        duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
   }
 
   // GET THE IMAGE FROM FIREBASE
   Future getImage() async {
     final pickedFile = await picker.getImage(
         source: ImageSource.gallery,
-        imageQuality: 25,
-        maxHeight: 2048,
-        maxWidth: 2048);
+        imageQuality: 70,
+        maxHeight: 3000,
+        maxWidth: 3000);
     if (pickedFile != null) image = File(pickedFile.path);
     notifyListeners();
   }
@@ -421,23 +435,30 @@ class AppState with ChangeNotifier {
   Future getCarImage() async {
     final pickedFile = await picker.getImage(
         source: ImageSource.gallery,
-        imageQuality: 35,
-        maxHeight: 2048,
-        maxWidth: 2048);
+        imageQuality: 70,
+        maxHeight: 3000,
+        maxWidth: 3000);
     if (pickedFile != null) carImage = File(pickedFile.path);
     notifyListeners();
   }
 
   //DOWNLOADS THE IMAGE FROM FIREBASE
   Future downloadProfilePicture(number) async {
-    StorageReference storageReference =
-        FirebaseStorage.instance.ref().child(number);
-    downloadURL = await storageReference.getDownloadURL();
-    notifyListeners();
+    try {
+      Firestore.instance.collection('Users').document(phone).get().then((doc) {
+        if (doc.exists) {
+          if (doc['image'] != null) {
+            downloadURL = doc['image'];
+          }
+        }
+      });
+
+      notifyListeners();
+    } catch (error) {}
   }
 
   //SAVES THE IMAGE TO FIREBASE
-  Future savePicture(BuildContext context, String phone) async {
+  Future saveUserProfilePicture(BuildContext context, String phone) async {
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child(phone);
     if (image != null) {
@@ -445,18 +466,49 @@ class AppState with ChangeNotifier {
       StorageUploadTask uploadTask = storageReference.putFile(image);
       await uploadTask.onComplete;
       if (uploadTask.isComplete) {
+        StorageReference storageReference =
+            FirebaseStorage.instance.ref().child(phone);
+        downloadURL = await storageReference.getDownloadURL();
+        Firestore.instance
+            .collection('Users')
+            .document(phone)
+            .updateData({'photo': downloadURL});
+        image = null;
+        Navigator.pop(context);
+        Toast.show("Foto guardada", context,
+            duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+      }
+    }
+    notifyListeners();
+  }
+
+  //SAVES THE IMAGE TO FIREBASE
+  Future saveDriverProfilePicture(BuildContext context, String phone) async {
+    StorageReference storageReference =
+        FirebaseStorage.instance.ref().child(phone);
+    if (image != null) {
+      StorageUploadTask uploadTask = storageReference.putFile(image);
+      await uploadTask.onComplete;
+      if (uploadTask.isComplete) {
+        String url = await storageReference.getDownloadURL();
+        await Firestore.instance
+            .collection('Drivers')
+            .document(phone)
+            .updateData({'image': url});
+
+        //Save also on the users
+        await Firestore.instance
+            .collection('Users')
+            .document(phone)
+            .updateData({'image': url});
         image = null;
         await downloadProfilePicture(phone);
-        Navigator.pop(context);
-        Fluttertoast.showToast(
-            msg: "Foto guardada",
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.teal,
-            textColor: Colors.white,
-            fontSize: 16.0);
       }
+    } else {
+      await Firestore.instance
+          .collection('Drivers')
+          .document(phone)
+          .updateData({'image': downloadURL});
     }
     notifyListeners();
   }
@@ -473,7 +525,7 @@ class AppState with ChangeNotifier {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  "Guardando foto...",
+                  "Guardando foto de perfil...",
                   style: TextStyle(
                       color: Colors.grey[700],
                       fontSize: 20,
@@ -481,7 +533,68 @@ class AppState with ChangeNotifier {
                 ),
               ],
             ),
-            content: LinearProgressIndicator());
+            content: LinearProgressIndicator(
+              valueColor: new AlwaysStoppedAnimation<Color>(Colors.orange),
+            ));
+      },
+    );
+    notifyListeners();
+  }
+
+  void _loadingDriverRequest(context) {
+    // flutter defined function
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  "Enviando solicutud...",
+                  style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: LinearProgressIndicator(
+              valueColor: new AlwaysStoppedAnimation<Color>(Colors.orange),
+            ));
+      },
+    );
+    notifyListeners();
+  }
+
+  void imageAlert(BuildContext context, String message) {
+    // flutter defined function
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+            title: Text(
+              "$message",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
+            ),
+            content: FlatButton(
+              color: Colors.orange,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Ok',
+                style: TextStyle(color: Colors.white),
+              ),
+            ));
       },
     );
     notifyListeners();
@@ -515,13 +628,17 @@ class AppState with ChangeNotifier {
   }
 
   // SEND A DRIVER REQUEST TO FIREBASE
-  Future saveDriverDataRequest(String id, String name, String _address,
-      String carName, String carModel, BuildContext context) async {
+  Future saveDriverDataRequest(
+      String id,
+      String name,
+      String _address,
+      String carName,
+      String carModel,
+      String carPlates,
+      BuildContext context) async {
     try {
       writeName(name);
-      //writeCarName(carName);
-      //writeCarModel(carModel);
-
+      _loadingDriverRequest(context);
       await Firestore.instance
           .collection('Users')
           .document(id)
@@ -534,13 +651,21 @@ class AppState with ChangeNotifier {
         'carModel': carModel,
         'isAccepted': false,
         'isActive': false,
-        'phone': phone
+        'phone': phone,
+        'carPlates': carPlates
       });
-
+      await saveDriverProfilePicture(context, phone);
+      await saveCarPicture(context, phone);
+      //Update state, now the user wants to be a driver
+      userWantsToBeDriver = true;
       notifyListeners();
+      Navigator.pop(context);
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => DriverRequestPending()));
     } catch (error) {
       print("ERROR: " + error);
-      saveDriverDataRequest(id, name, _address, carName, carModel, context);
+      saveDriverDataRequest(
+          id, name, _address, carName, carModel, carPlates, context);
     }
   }
 
@@ -549,13 +674,50 @@ class AppState with ChangeNotifier {
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child("driver" + phone);
     if (carImage != null) {
-      _cargandoDialog(context);
       StorageUploadTask uploadTask = storageReference.putFile(carImage);
       await uploadTask.onComplete;
       if (uploadTask.isComplete) {
-        Navigator.pop(context);
+        String url = await storageReference.getDownloadURL();
+        await Firestore.instance
+            .collection('Drivers')
+            .document(phone)
+            .updateData({'car': url});
       }
     }
     notifyListeners();
+  }
+
+  Future checkIfIsDriver(String driverID) async {
+    try {
+      await Firestore.instance
+          .collection('Drivers')
+          .document(driverID)
+          .get()
+          .then((driver) {
+        if (driver.exists) {
+          if (driver.data['isAccepted']) {
+            //The user is a Driver and is accepted
+            userIsDriver = true;
+          } else {
+            //The user wants to be a driver and is waiting for beeing accepted
+            userWantsToBeDriver = true;
+            userIsDriver = false;
+          }
+        } else {
+          //The user is a normal user
+          userIsDriver = false;
+          userWantsToBeDriver = false;
+        }
+        notifyListeners();
+      });
+    } catch (e) {}
+  }
+
+  Future cancelDriverRequest() async {
+    try {
+      await Firestore.instance.collection('Drivers').document(_phone).delete();
+      userWantsToBeDriver = false;
+      notifyListeners();
+    } catch (e) {}
   }
 }

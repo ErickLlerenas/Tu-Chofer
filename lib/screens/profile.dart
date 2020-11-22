@@ -35,21 +35,21 @@ class _ProfileState extends State<Profile> {
                       ),
                       Center(
                         child: appState.image == null &&
-                                appState.downloadURL == null
+                                appState.downloadURL.isEmpty
                             ? Stack(
                                 children: <Widget>[
                                   CircleAvatar(
                                     radius: 100,
                                     backgroundColor: Colors.white,
                                     child: Text(
-                                      "Foto de perfil",
+                                      "${appState.name[0]}",
                                       style: TextStyle(
-                                          fontSize: 20.0,
+                                          fontSize: 80.0,
                                           color: Colors.grey[600]),
                                     ),
                                   ),
                                   FloatingActionButton(
-                                      backgroundColor: Colors.teal,
+                                      backgroundColor: Colors.orange,
                                       onPressed: () => appState.getImage(),
                                       child: Icon(Icons.add_a_photo))
                                 ],
@@ -67,7 +67,7 @@ class _ProfileState extends State<Profile> {
                                             fit: BoxFit.cover),
                                       ),
                                       FloatingActionButton(
-                                          backgroundColor: Colors.teal,
+                                          backgroundColor: Colors.orange,
                                           onPressed: () => appState.getImage(),
                                           child: Icon(Icons.add_a_photo)),
                                     ],
@@ -84,7 +84,7 @@ class _ProfileState extends State<Profile> {
                                             fit: BoxFit.cover),
                                       ),
                                       FloatingActionButton(
-                                          backgroundColor: Colors.teal,
+                                          backgroundColor: Colors.orange,
                                           onPressed: () => appState.getImage(),
                                           child: Icon(Icons.add_a_photo)),
                                     ],
@@ -122,7 +122,7 @@ class _ProfileState extends State<Profile> {
                                 height: 45,
                                 minWidth: double.infinity,
                                 child: FlatButton(
-                                  color: Colors.teal,
+                                  color: Colors.black87,
                                   child: Text(
                                     'Guardar',
                                     style: TextStyle(color: Colors.white),
@@ -132,10 +132,12 @@ class _ProfileState extends State<Profile> {
                                             .nameController.text.isNotEmpty &&
                                         appState.nameController.text !=
                                             appState.name) {
-                                      appState.saveName(appState.phone,
-                                          appState.nameController.text);
+                                      appState.saveName(
+                                          appState.phone,
+                                          appState.nameController.text,
+                                          context);
                                     }
-                                    appState.savePicture(
+                                    appState.saveUserProfilePicture(
                                         context, appState.phone);
                                   },
                                 ),

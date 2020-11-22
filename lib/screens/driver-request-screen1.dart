@@ -45,7 +45,7 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                 height: 30,
               ),
               Center(
-                child: appState.downloadURL.isEmpty
+                child: appState.image == null && appState.downloadURL.isEmpty
                     ? Stack(
                         children: <Widget>[
                           CircleAvatar(
@@ -58,24 +58,38 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                             ),
                           ),
                           FloatingActionButton(
-                              backgroundColor: Colors.teal,
+                              backgroundColor: Colors.orange,
                               onPressed: () => appState.getImage(),
                               child: Icon(Icons.add_a_photo))
                         ],
                       )
-                    : Stack(
-                        children: <Widget>[
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(200),
-                            child: Image.network(appState.downloadURL,
-                                height: 200, width: 200, fit: BoxFit.cover),
+                    : appState.image != null
+                        ? Stack(
+                            children: <Widget>[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(200),
+                                child: Image.file(appState.image,
+                                    height: 200, width: 200, fit: BoxFit.cover),
+                              ),
+                              FloatingActionButton(
+                                  backgroundColor: Colors.orange,
+                                  onPressed: () => appState.getImage(),
+                                  child: Icon(Icons.add_a_photo)),
+                            ],
+                          )
+                        : Stack(
+                            children: <Widget>[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(200),
+                                child: Image.network(appState.downloadURL,
+                                    height: 200, width: 200, fit: BoxFit.cover),
+                              ),
+                              FloatingActionButton(
+                                  backgroundColor: Colors.orange,
+                                  onPressed: () => appState.getImage(),
+                                  child: Icon(Icons.add_a_photo)),
+                            ],
                           ),
-                          FloatingActionButton(
-                              backgroundColor: Colors.teal,
-                              onPressed: () => appState.getImage(),
-                              child: Icon(Icons.add_a_photo)),
-                        ],
-                      ),
               ),
               SizedBox(
                 height: 16,
@@ -85,11 +99,11 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                 decoration: InputDecoration(
                     focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide(color: Colors.teal)),
+                        borderSide: BorderSide(color: Colors.orange)),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide(color: Colors.teal)),
-                    errorStyle: TextStyle(color: Colors.teal),
+                        borderSide: BorderSide(color: Colors.orange)),
+                    errorStyle: TextStyle(color: Colors.orange),
                     errorText: !appState.validName
                         ? "Ingresa tu nombre completo"
                         : null,
@@ -106,11 +120,11 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                 decoration: InputDecoration(
                     focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide(color: Colors.teal)),
+                        borderSide: BorderSide(color: Colors.orange)),
                     errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide(color: Colors.teal)),
-                    errorStyle: TextStyle(color: Colors.teal),
+                        borderSide: BorderSide(color: Colors.orange)),
+                    errorStyle: TextStyle(color: Colors.orange),
                     errorText:
                         !appState.validAddres ? "Ingresa tu domcilio" : null,
                     enabledBorder: OutlineInputBorder(
@@ -142,15 +156,22 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                             true, appState.addressController.text);
 
                     if (appState.validName && appState.validAddres) {
-                      appState.nextScreen(appState.registerNameController.text,
-                          appState.addressController.text);
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => DriverRequestScreen2()));
+                      if (appState.downloadURL.isNotEmpty ||
+                          appState.image != null) {
+                        appState.nextScreen(
+                            appState.registerNameController.text,
+                            appState.addressController.text);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DriverRequestScreen2()));
+                      } else {
+                        appState.imageAlert(
+                            context, "Necesitas una foto de perfil.");
+                      }
                     }
                   },
-                  color: Colors.teal,
+                  color: Colors.black87,
                 ),
               )
             ],

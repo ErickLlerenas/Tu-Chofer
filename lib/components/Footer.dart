@@ -17,9 +17,9 @@ class _FooterState extends State<Footer> {
 
     return DraggableScrollableSheet(
         expand: true,
-        maxChildSize: 0.385,
-        initialChildSize: 0.385,
-        minChildSize: 0.385,
+        maxChildSize: 0.4,
+        initialChildSize: 0.4,
+        minChildSize: 0.4,
         builder: (context, controller) {
           return Container(
               color: Colors.white,
@@ -48,27 +48,35 @@ class _FooterState extends State<Footer> {
                     trailing: Icon(Icons.navigate_next),
                   ),
                   !appState.isLoadingPrices
-                      ? LinearProgressIndicator()
+                      ? ListTile(
+                          title: LinearProgressIndicator(
+                            valueColor: new AlwaysStoppedAnimation<Color>(
+                                Colors.black87),
+                          ),
+                        )
                       : ListTile(
                           leading: Icon(
                             Icons.attach_money,
                             color: Colors.teal[400],
                           ),
-                          title: Text("Precio: \$${appState.precio}"),
+                          title: Text("Precio: \$${appState.costoServicio}"),
                           subtitle: Text(
                             "Distancia: ${appState.distance}\nDuración: ${appState.duration}",
-                          ),
-                          trailing: ButtonTheme(
+                          )),
+                  !appState.isLoadingPrices
+                      ? Container()
+                      : ListTile(
+                          subtitle: ButtonTheme(
                             height: 45,
                             minWidth: 100,
                             child: FlatButton(
-                              color: Colors.grey[800],
+                              color: Colors.black87,
                               child: Text(
                                 'Pide tu chofer',
                                 style: TextStyle(color: Colors.white),
                               ),
                               onPressed: () {
-                                _showDialog(appState.phone);
+                                _showSearchingDriversDialog(appState.phone);
                                 print(appState.origin);
                                 Firestore.instance
                                     .collection('Users')
@@ -86,7 +94,7 @@ class _FooterState extends State<Footer> {
                                       appState.destination.latitude,
                                       appState.destination.longitude),
                                   'phone': appState.phone,
-                                  'price': appState.precio,
+                                  'price': appState.costoServicio,
                                   'distance': appState.distance,
                                   'duration': appState.duration
                                 });
@@ -99,7 +107,7 @@ class _FooterState extends State<Footer> {
         });
   }
 
-  void _showDialog(phone) {
+  void _showSearchingDriversDialog(String phone) {
     // flutter defined function
     showDialog(
       barrierDismissible: false,
@@ -118,7 +126,9 @@ class _FooterState extends State<Footer> {
               SizedBox(
                 height: 30,
               ),
-              CircularProgressIndicator()
+              CircularProgressIndicator(
+                valueColor: new AlwaysStoppedAnimation<Color>(Colors.orange),
+              )
             ],
           ),
           content: Container(

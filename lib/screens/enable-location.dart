@@ -41,7 +41,7 @@ class _EnableLocationState extends State<EnableLocation> {
                 Container(
                   width: double.infinity,
                   child: FlatButton(
-                    color: Colors.deepPurpleAccent[400],
+                    color: Colors.orange,
                     padding: EdgeInsets.all(16),
                     child:
                         Text('Activar', style: TextStyle(color: Colors.white)),

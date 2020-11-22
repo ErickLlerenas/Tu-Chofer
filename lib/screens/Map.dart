@@ -14,18 +14,15 @@ class Map extends StatefulWidget {
 
 class _MapState extends State<Map> {
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return appState.initialPosition == null
         ? Container(
             alignment: Alignment.center,
             child: Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                valueColor: new AlwaysStoppedAnimation<Color>(Colors.orange),
+              ),
             ),
           )
         : Stack(children: <Widget>[
