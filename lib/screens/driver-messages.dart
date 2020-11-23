@@ -1,20 +1,15 @@
 import 'package:chofer/components/custom-drawer.dart';
-import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-// import 'package:flutter_svg/flutter_svg.dart';
 
-class History extends StatefulWidget {
+class DriverMessages extends StatefulWidget {
   @override
-  _HistoryState createState() => _HistoryState();
+  _DriverMessagesState createState() => _DriverMessagesState();
 }
 
-class _HistoryState extends State<History> {
+class _DriverMessagesState extends State<DriverMessages> {
   final history = [];
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -27,14 +22,15 @@ class _HistoryState extends State<History> {
             ? Center(
                 child: SingleChildScrollView(
                 child: Column(
-                    children: appState.userHistory.map((history) {
-                  return ListTile(
-                    title: Text(
-                        "Origen: ${history['origin']}\nDestino: ${history['destination']}"),
-                    leading: Icon(Icons.date_range_outlined),
-                    subtitle: Text('Costo: \$${history['cost']}'),
-                  );
-                }).toList()),
+                  children: <Widget>[
+                    ListTile(
+                      title: Text('Lunes 15 de Junio del 2020'),
+                      leading: Icon(Icons.date_range),
+                      subtitle: Text('\$55'),
+                      trailing: Icon(Icons.attach_money),
+                    )
+                  ],
+                ),
               ))
             : Container(
                 padding: EdgeInsets.all(50),
@@ -44,13 +40,13 @@ class _HistoryState extends State<History> {
                       'assets/empty.png',
                       height: 300,
                     ),
-                    Text('Sin historial',
+                    Text('Sin mensajes',
                         style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
                             color: Colors.grey[700])),
                     Text(
-                      'No haz realizado ningún viaje',
+                      'No hay ningún mensaje',
                       style: TextStyle(color: Colors.grey[700]),
                       textAlign: TextAlign.center,
                     ),

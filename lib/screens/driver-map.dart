@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:chofer/components/driver-footer.dart';
 import 'package:chofer/components/custom-drawer.dart';
+import 'package:chofer/requests/google-maps-requests.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -18,11 +19,13 @@ class DriverMap extends StatefulWidget {
 
 class _DriverMapState extends State<DriverMap> {
   bool isActive = false;
+  bool driverIsOnDriverScreen = true;
   Location _location = Location();
   StreamSubscription locationSubscription;
   Marker _marker;
   GoogleMapController _mapController;
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  GoogleMapsServices _googleMapsServices = GoogleMapsServices();
 
   Future getMarker() async {
     ByteData byteData =
@@ -39,6 +42,7 @@ class _DriverMapState extends State<DriverMap> {
         .updateData({
       'currentLocation':
           new GeoPoint(newLocalData.latitude, newLocalData.longitude),
+      'currentLocationHeading': newLocalData.heading
     });
     setState(() {
       _marker = Marker(
@@ -70,14 +74,16 @@ class _DriverMapState extends State<DriverMap> {
       locationSubscription = _location.onLocationChanged.listen((newLocalData) {
         if (_mapController != null) {
           if (isActive) {
-            _mapController.animateCamera(CameraUpdate.newCameraPosition(
-                new CameraPosition(
-                    bearing: 0,
-                    tilt: 0,
-                    zoom: 16.5,
-                    target: LatLng(
-                        newLocalData.latitude, newLocalData.longitude))));
-            updateCarMarker(newLocalData, imageData, appState);
+            if (driverIsOnDriverScreen) {
+              _mapController.animateCamera(CameraUpdate.newCameraPosition(
+                  new CameraPosition(
+                      bearing: 0,
+                      tilt: 0,
+                      zoom: 16.5,
+                      target: LatLng(
+                          newLocalData.latitude, newLocalData.longitude))));
+              updateCarMarker(newLocalData, imageData, appState);
+            }
           }
         }
       });
@@ -97,12 +103,14 @@ class _DriverMapState extends State<DriverMap> {
       locationSubscription.cancel();
     }
     isActive = false;
+    driverIsOnDriverScreen = false;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+
     return Scaffold(
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.local_taxi),
@@ -110,6 +118,10 @@ class _DriverMapState extends State<DriverMap> {
           onPressed: () {
             setState(() {
               isActive = !isActive;
+              Firestore.instance
+                  .collection('Drivers')
+                  .document(appState.phone)
+                  .updateData({'isActive': isActive});
               isActive ? getCurrentLocation(appState) : clearCar();
             });
           },
@@ -123,14 +135,28 @@ class _DriverMapState extends State<DriverMap> {
               if (!snapshot.hasData) return Container();
 
               if (isActive) {
-                print(snapshot.data.documents[0]['isAskingService']);
-                snapshot.data.documents.forEach((DocumentSnapshot document) {
-                  print('ASDASDAS XDXD: ${document['isAskingService']}');
+                snapshot.data.documents.forEach((DocumentSnapshot user) {
+                  print(user['isAskingService']);
+                  if (user['isAskingService']) {
+                    Firestore.instance
+                        .collection('Drivers')
+                        .getDocuments()
+                        .then((drivers) {
+                      drivers.documents.forEach((driver) async {
+                        if (driver.data['currentLocation'] != null) {
+                          LatLng driverLatLng = LatLng(
+                              driver.data['currentLocation'].latitude,
+                              driver.data['currentLocation'].longitude);
+                          LatLng userLatLng = LatLng(user['origin'].latitude,
+                              user['origin'].longitude);
+                          print(driver.data['phone']);
+                          print(await _googleMapsServices.getDistanceValue(
+                              driverLatLng, userLatLng));
+                        }
+                      });
+                    });
+                  }
                 });
-
-                // if (snapshot.data.documents[0]['isAskingService']) {
-                //   WidgetsBinding.instance.addPostFrameCallback((_) => _showDialog(context,snapshot.data.documents[0]['originName'],snapshot.data.documents[0]['destinationName'],snapshot.data.documents[0]['phone']));
-                // }
               }
               return Stack(children: <Widget>[
                 GoogleMap(

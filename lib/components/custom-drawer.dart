@@ -1,14 +1,17 @@
 import 'package:chofer/screens/Home.dart';
+import 'package:chofer/screens/driver-messages.dart';
 import 'package:chofer/screens/driver-request-pending.dart';
 import 'package:chofer/screens/driver-request-screen1.dart';
 import 'package:chofer/screens/earnings-and-payments.dart';
 import 'package:chofer/screens/history.dart';
+import 'package:chofer/screens/messages.dart';
 import 'package:chofer/screens/driver-map.dart';
 import 'package:chofer/screens/profile.dart';
 import 'package:chofer/screens/terms-and-conditions.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CustomDrawer extends StatelessWidget {
   @override
@@ -82,6 +85,17 @@ class CustomDrawer extends StatelessWidget {
                   context, MaterialPageRoute(builder: (context) => History()));
             },
           ),
+          ListTile(
+            leading: Icon(Icons.message),
+            title: Text('Mensajes'),
+            trailing: Icon(Icons.navigate_next),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Messages()));
+            },
+          ),
           appState.userIsDriver
               ? Container()
               : ListTile(
@@ -115,7 +129,7 @@ class CustomDrawer extends StatelessWidget {
                       builder: (context) => TermsAndConditions()));
             },
           ),
-          !appState.userIsDriver ? Container() : Divider(),
+          Divider(),
           !appState.userIsDriver
               ? Container()
               : ListTile(
@@ -150,6 +164,36 @@ class CustomDrawer extends StatelessWidget {
                             builder: (context) => EarningsAndPayments()));
                   },
                 ),
+          !appState.userIsDriver
+              ? Container()
+              : ListTile(
+                  leading: Icon(Icons.message, color: Colors.orange),
+                  title:
+                      Text('Mensajes', style: TextStyle(color: Colors.orange)),
+                  trailing: Icon(Icons.navigate_next, color: Colors.orange),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DriverMessages()));
+                  },
+                ),
+          Container(
+            color: Colors.red[900],
+            child: ListTile(
+              leading: Icon(Icons.taxi_alert, color: Colors.white),
+              title: Text('Emergencia', style: TextStyle(color: Colors.white)),
+              trailing: Icon(Icons.phone, color: Colors.white),
+              onTap: () async {
+                Navigator.pop(context);
+                if (await canLaunch('tel:911')) {
+                  await launch('tel:911');
+                }
+              },
+            ),
+          ),
         ],
       ),
     );

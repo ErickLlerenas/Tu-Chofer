@@ -110,10 +110,12 @@ class LoginState with ChangeNotifier {
         .get()
         .then((user) async {
       if (!user.exists) {
-        await Firestore.instance
-            .collection('Users')
-            .document(id)
-            .setData({'name': name, 'isAskingService': false, 'phone': id});
+        await Firestore.instance.collection('Users').document(id).setData({
+          'name': name,
+          'isAskingService': false,
+          'phone': id,
+          'history': []
+        });
         notifyListeners();
       }
     });

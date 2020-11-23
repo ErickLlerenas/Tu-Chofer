@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:chofer/screens/driver-request-pending.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -17,7 +18,7 @@ class AppState with ChangeNotifier {
   static LatLng _initialPosition;
   LatLng _lastPosition = _initialPosition;
   bool locationServiceActive = true;
-  Set<Marker> _markers;
+  Set<Marker> _markers = Set<Marker>();
   Set<Polyline> _polyLines;
   GoogleMapController _mapController;
   GoogleMapsServices _googleMapsServices = GoogleMapsServices();
@@ -36,6 +37,17 @@ class AppState with ChangeNotifier {
   int distanceValue;
   int durationValue;
   bool isLoadingPrices;
+  List userHistory = [
+    {
+      'origin': 'Nogal 37 Valle de las Garzas',
+      'destination': 'Soriana',
+      'cost': 35,
+      'date': 'Hoy xd'
+    }
+  ];
+  List driverHistory = [];
+  List userMessages = [];
+  List driverMessages = [];
   l.Location location = new l.Location();
   bool serviceEnabled = true;
   l.PermissionStatus permissionGranted;
@@ -136,7 +148,7 @@ class AppState with ChangeNotifier {
 
   //  TO CREATE ROUTE
   void createRoute(String encondedPoly) {
-    _polyLines = {};
+    _polyLines = Set<Polyline>();
     _polyLines.add(Polyline(
         polylineId: PolylineId(Uuid().v1()),
         width: 3,
@@ -147,7 +159,7 @@ class AppState with ChangeNotifier {
 
   //  ADD A MARKER ON THE MAP
   void _addMarker(LatLng location, String address) {
-    _markers = {};
+    _markers = Set<Marker>();
     _markers.add(Marker(
         markerId: MarkerId(Uuid().v1()),
         position: location,
@@ -322,6 +334,33 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
+  Future getCarMarker(BuildContext context) async {
+    ByteData byteData =
+        await DefaultAssetBundle.of(context).load("assets/car.png");
+    return byteData.buffer.asUint8List();
+  }
+
+  void updateCarMarker(
+      List cars, AppState appState, BuildContext context) async {
+    Uint8List imageData = await getCarMarker(context);
+    _markers = Set<Marker>();
+
+    cars.forEach((car) {
+      LatLng latlng = LatLng(
+          car['currentLocation'].latitude, car['currentLocation'].longitude);
+      _markers.add(Marker(
+          markerId: MarkerId(Uuid().v1()),
+          position: latlng,
+          rotation: car['currentLocationHeading'].toDouble(),
+          draggable: false,
+          zIndex: 2,
+          flat: true,
+          anchor: Offset(0.5, 0.5),
+          icon: BitmapDescriptor.fromBytes(imageData)));
+    });
+    notifyListeners();
+  }
+
   void validateNameInput(bool isValid, String newName) {
     validName = isValid;
     tempName = newName;
@@ -472,7 +511,7 @@ class AppState with ChangeNotifier {
         Firestore.instance
             .collection('Users')
             .document(phone)
-            .updateData({'photo': downloadURL});
+            .updateData({'image': downloadURL});
         image = null;
         Navigator.pop(context);
         Toast.show("Foto guardada", context,
@@ -652,7 +691,8 @@ class AppState with ChangeNotifier {
         'isAccepted': false,
         'isActive': false,
         'phone': phone,
-        'carPlates': carPlates
+        'carPlates': carPlates,
+        'history': []
       });
       await saveDriverProfilePicture(context, phone);
       await saveCarPicture(context, phone);

@@ -14,6 +14,7 @@ class _ProfileState extends State<Profile> {
     final appState = Provider.of<AppState>(context);
     appState.nameController = TextEditingController(text: appState.name);
     return Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.grey[50],
           elevation: 0,
