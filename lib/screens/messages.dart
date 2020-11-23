@@ -10,13 +10,14 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
+  TextEditingController _messageController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[100],
         appBar: AppBar(
-          backgroundColor: Colors.grey[50],
+          backgroundColor: Colors.grey[100],
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
@@ -35,75 +36,161 @@ class _MessagesState extends State<Messages> {
               });
               return SingleChildScrollView(
                 child: Column(
-                    children: userMessages.map((msg) {
-                  return msg['name'] != "Base"
-                      ? Container(
-                          width: 250,
-                          margin: EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(15),
-                              topLeft: Radius.circular(15),
-                              topRight: Radius.circular(30),
+                  children: [
+                    Image.asset(
+                      'assets/icon.png',
+                      width: 100,
+                    ),
+                    Text(
+                      "Tu Chofer Chat",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      height: MediaQuery.of(context).size.height - 340,
+                      child: SingleChildScrollView(
+                        child: Column(
+                            children: userMessages.map((msg) {
+                          var time;
+                          if (msg['time'] != null) {
+                            time =
+                                DateTime.parse(msg['time'].toDate().toString());
+                            print(time.hour);
+                            print(time.minute);
+                          }
+
+                          return msg['name'] != "Tu Chofer"
+                              ? Align(
+                                  alignment: Alignment.topRight,
+                                  child: new Container(
+                                      margin: EdgeInsets.only(
+                                          top: 5,
+                                          left: 100,
+                                          right: 15,
+                                          bottom: 5),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(15),
+                                          topLeft: Radius.circular(15),
+                                          bottomRight: Radius.circular(40),
+                                        ),
+                                        color: Colors.orange[100],
+                                      ),
+                                      padding: EdgeInsets.all(20),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            "${msg['message']}",
+                                            style: TextStyle(fontSize: 16),
+                                          ),
+                                          time != null
+                                              ? Text(
+                                                  "${time.hour}:${time.minute}",
+                                                  textAlign: TextAlign.end,
+                                                  style: TextStyle(
+                                                      color: Colors.grey),
+                                                )
+                                              : Container()
+                                        ],
+                                      )),
+                                )
+                              : Container(
+                                  margin: EdgeInsets.only(
+                                      top: 5, right: 100, left: 15, bottom: 5),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.only(
+                                      bottomRight: Radius.circular(15),
+                                      bottomLeft: Radius.circular(40),
+                                      topRight: Radius.circular(15),
+                                    ),
+                                    color: Colors.white,
+                                  ),
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text("${msg['name']}",
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.orange)),
+                                      Text("${msg['message']}",
+                                          style: TextStyle(fontSize: 16))
+                                    ],
+                                  ),
+                                );
+                        }).toList()),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.all(20),
+                      color: Colors.white,
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                            flex: 8,
+                            child: Container(
+                              color: Colors.white,
+                              child: TextFormField(
+                                textCapitalization:
+                                    TextCapitalization.sentences,
+                                style: TextStyle(fontSize: 18),
+                                cursorColor: Colors.orange,
+                                cursorHeight: 22,
+                                decoration: InputDecoration(
+                                    enabledBorder: OutlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Colors.white)),
+                                    focusedBorder: OutlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Colors.white)),
+                                    hintText: "Escribe un mensaje..."),
+                                controller: _messageController,
+                              ),
                             ),
-                            color: Colors.orange[200],
                           ),
-                          padding: EdgeInsets.all(15),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("${msg['message']}",
-                                  style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                        )
-                      : Container(
-                          width: 250,
-                          margin: EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(15),
-                              topLeft: Radius.circular(15),
-                              topRight: Radius.circular(30),
+                          Expanded(
+                            flex: 2,
+                            child: Container(
+                              child: CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.white,
+                                child: IconButton(
+                                  color: Colors.orange,
+                                  icon: Icon(Icons.send),
+                                  onPressed: () async {
+                                    await Firestore.instance
+                                        .collection('Users')
+                                        .document(appState.phone)
+                                        .get()
+                                        .then((user) async {
+                                      List temp = [];
+                                      temp = user['messages'];
+                                      temp.add({
+                                        'name': appState.name,
+                                        'message': _messageController.text,
+                                        'time': new DateTime.now()
+                                      });
+                                      await Firestore.instance
+                                          .collection('Users')
+                                          .document(appState.phone)
+                                          .updateData({'messages': temp});
+                                    });
+
+                                    _messageController.text = "";
+                                  },
+                                ),
+                              ),
                             ),
-                            color: Colors.orange[50],
-                          ),
-                          padding: EdgeInsets.all(15),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("${msg['name']}",
-                                  style: TextStyle(fontSize: 18)),
-                              Text("${msg['message']}",
-                                  style: TextStyle(fontSize: 16))
-                            ],
-                          ),
-                        );
-                }).toList()),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               );
             }));
   }
 }
-/*
- : Container(
-                padding: EdgeInsets.all(50),
-                child: Column(
-                  children: <Widget>[
-                    Image.asset(
-                      'assets/empty.png',
-                      height: 300,
-                    ),
-                    Text('Sin mensajes',
-                        style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700])),
-                    Text(
-                      'No hay ningún mensaje',
-                      style: TextStyle(color: Colors.grey[700]),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
- */

@@ -114,7 +114,14 @@ class LoginState with ChangeNotifier {
           'name': name,
           'isAskingService': false,
           'phone': id,
-          'history': []
+          'history': [],
+          'messages': [
+            {
+              'message':
+                  '¡Hola ${name.split(' ')[0]}😄!  ¿Tienes alguna duda? Mándanos un mensaje y te responderemos en seguida...',
+              'name': 'Tu Chofer'
+            }
+          ]
         });
         notifyListeners();
       }
