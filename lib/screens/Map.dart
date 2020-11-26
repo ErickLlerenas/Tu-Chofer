@@ -1,5 +1,6 @@
 import 'package:chofer/components/footer.dart';
 import 'package:chofer/components/to-input.dart';
+import 'package:chofer/components/user-accepted-footer.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -14,6 +15,13 @@ class Map extends StatefulWidget {
 }
 
 class _MapState extends State<Map> {
+  String driverCarName;
+  String driverCarImage;
+  String driverName;
+  String driverCarModel;
+  String driverImage;
+  String driverPhone;
+  String driverCarPlates;
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -41,6 +49,27 @@ class _MapState extends State<Map> {
                     'currentLocationHeading': document['currentLocationHeading']
                   });
                 }
+                if (document['tripID'] != null) {
+                  if (document['tripID']['userID'] == appState.phone) {
+                    if (document['tripID']['accepted']) {
+                      print('Service Accepted XD');
+                      if (appState.hack == 0) {
+                        if (appState.isAskingService) {
+                          Navigator.pop(context);
+                          appState.countHack();
+                          driverCarName = document['carName'];
+                          driverCarImage = document['car'];
+                          driverImage = document['image'];
+                          driverName = document['name'];
+                          driverPhone = document['phone'];
+                          driverCarPlates = document['carPlates'];
+                          driverCarModel = document['carModel'];
+                        }
+                      }
+                      print(appState.serviceAccepted);
+                    }
+                  }
+                }
               });
               if (appState.destinationController.text.isEmpty) {
                 appState.updateCarMarker(cars, appState, context);
@@ -61,7 +90,17 @@ class _MapState extends State<Map> {
                     markers: appState.markers),
                 appState.destinationController.text.isEmpty
                     ? ToInput()
-                    : Footer(),
+                    : !appState.serviceAccepted
+                        ? Footer()
+                        : UserAcceptedFooter(
+                            driverCarName: driverCarName,
+                            driverCarImage: driverCarImage,
+                            driverCarPlates: driverCarPlates,
+                            driverImage: driverImage,
+                            driverName: driverName,
+                            driverPhone: driverPhone,
+                            driverCarModel: driverCarModel,
+                          ),
                 Positioned(
                   left: 8,
                   top: 25,

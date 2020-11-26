@@ -96,29 +96,35 @@ class _MessagesState extends State<Messages> {
                                         ],
                                       )),
                                 )
-                              : Container(
-                                  margin: EdgeInsets.only(
-                                      top: 5, right: 100, left: 15, bottom: 5),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                      bottomRight: Radius.circular(15),
-                                      bottomLeft: Radius.circular(40),
-                                      topRight: Radius.circular(15),
+                              : Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Container(
+                                    margin: EdgeInsets.only(
+                                        top: 5,
+                                        right: 100,
+                                        left: 15,
+                                        bottom: 5),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.only(
+                                        bottomRight: Radius.circular(15),
+                                        bottomLeft: Radius.circular(40),
+                                        topRight: Radius.circular(15),
+                                      ),
+                                      color: Colors.white,
                                     ),
-                                    color: Colors.white,
-                                  ),
-                                  padding: EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text("${msg['name']}",
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              color: Colors.orange)),
-                                      Text("${msg['message']}",
-                                          style: TextStyle(fontSize: 16))
-                                    ],
+                                    padding: EdgeInsets.all(20),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text("${msg['name']}",
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.orange)),
+                                        Text("${msg['message']}",
+                                            style: TextStyle(fontSize: 16))
+                                      ],
+                                    ),
                                   ),
                                 );
                         }).toList()),

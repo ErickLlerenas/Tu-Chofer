@@ -6,6 +6,19 @@ import 'package:chofer/screens/destination.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Footer extends StatefulWidget {
+  final String driverImage;
+  final String driverName;
+  final String driverCarImage;
+  final String driverCarName;
+  final String driverCarPlates;
+  final String driverPhone;
+  Footer(
+      {this.driverCarImage,
+      this.driverCarName,
+      this.driverCarPlates,
+      this.driverImage,
+      this.driverName,
+      this.driverPhone});
   @override
   _FooterState createState() => _FooterState();
 }
@@ -77,7 +90,7 @@ class _FooterState extends State<Footer> {
                               ),
                               onPressed: () {
                                 _showSearchingDriversDialog(appState.phone);
-                                print(appState.origin);
+                                appState.userIsAskingService();
                                 Firestore.instance
                                     .collection('Users')
                                     .document(appState.phone)

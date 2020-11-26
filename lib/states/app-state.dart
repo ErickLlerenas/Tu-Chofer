@@ -61,6 +61,8 @@ class AppState with ChangeNotifier {
   bool validCarPlates = true;
   bool userWantsToBeDriver = false;
   bool userIsDriver = false;
+  bool isAskingService = false;
+  bool serviceAccepted = false;
   File image;
   File carImage;
   String downloadURL = "";
@@ -80,6 +82,8 @@ class AppState with ChangeNotifier {
   int costoBase;
   double costoKilometro;
   double costoMinuto;
+  int hack =
+      0; //This is used at the user map, whenever a driver accepts the user petition, this prevents the app to bug
 
   get phone => _phone;
   get name => _name;
@@ -512,6 +516,12 @@ class AppState with ChangeNotifier {
             .collection('Users')
             .document(phone)
             .updateData({'image': downloadURL});
+        if (userIsDriver) {
+          Firestore.instance
+              .collection('Drivers')
+              .document(phone)
+              .updateData({'image': downloadURL});
+        }
         image = null;
         Navigator.pop(context);
         Toast.show("Foto guardada", context,
@@ -692,7 +702,14 @@ class AppState with ChangeNotifier {
         'isActive': false,
         'phone': phone,
         'carPlates': carPlates,
-        'history': []
+        'history': [],
+        'messages': [
+          {
+            'name': 'Tu Chofer',
+            'message':
+                'Hola ${name.split(' ')[0]}, aquí podrás chatear con nosotros y nosotros comunicarnos contigo'
+          }
+        ]
       });
       await saveDriverProfilePicture(context, phone);
       await saveCarPicture(context, phone);
@@ -759,5 +776,16 @@ class AppState with ChangeNotifier {
       userWantsToBeDriver = false;
       notifyListeners();
     } catch (e) {}
+  }
+
+  void userIsAskingService() {
+    isAskingService = true;
+    notifyListeners();
+  }
+
+  void countHack() {
+    hack++;
+    serviceAccepted = true;
+    notifyListeners();
   }
 }

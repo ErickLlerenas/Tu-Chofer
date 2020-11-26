@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 class DriverFooter extends StatefulWidget {
   final String origin;
@@ -86,6 +88,8 @@ class _DriverFooterState extends State<DriverFooter> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+
     return _time == 0
         ? Container()
         : DraggableScrollableSheet(
@@ -169,9 +173,15 @@ class _DriverFooterState extends State<DriverFooter> {
                               _time = 0;
                             });
                             Firestore.instance
-                                .collection('Users')
-                                .document('${widget.phone}')
-                                .updateData({'serviceAccepted': true});
+                                .collection('Drivers')
+                                .document('${appState.phone}')
+                                .updateData({
+                              'tripID': {
+                                'userID': widget.phone,
+                                'accepted': true,
+                                'driversOrderList': []
+                              }
+                            });
                             _showDialog();
                           },
                         ),
