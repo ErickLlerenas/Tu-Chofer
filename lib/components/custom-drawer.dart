@@ -2,7 +2,7 @@ import 'package:chofer/screens/Home.dart';
 import 'package:chofer/screens/driver-messages.dart';
 import 'package:chofer/screens/driver-request-pending.dart';
 import 'package:chofer/screens/driver-request-screen1.dart';
-import 'package:chofer/screens/earnings-and-payments.dart';
+import 'package:chofer/screens/driver-earnings.dart';
 import 'package:chofer/screens/history.dart';
 import 'package:chofer/screens/messages.dart';
 import 'package:chofer/screens/driver-map.dart';
@@ -18,11 +18,7 @@ class CustomDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return Drawer(
-      // Add a ListView to the drawer. This ensures the user can scroll
-      // through the options in the drawer if there isn't enough vertical
-      // space to fit everything.
       child: ListView(
-        // Important: Remove any padding from the ListView.
         padding: EdgeInsets.zero,
         children: <Widget>[
           UserAccountsDrawerHeader(
@@ -65,7 +61,7 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(Icons.person),
-            title: Text('Mi perfil'),
+            title: Text('Perfil'),
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
@@ -118,7 +114,7 @@ class CustomDrawer extends StatelessWidget {
                 ),
           ListTile(
             leading: Icon(Icons.info_outline),
-            title: Text('Terminos y condiciones'),
+            title: Text('Términos y condiciones'),
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
@@ -133,9 +129,9 @@ class CustomDrawer extends StatelessWidget {
           !appState.userIsDriver
               ? Container()
               : ListTile(
-                  leading: Icon(Icons.my_location, color: Colors.orange),
+                  leading: Icon(Icons.local_taxi, color: Colors.orange),
                   title: Text(
-                    'Mapa Chofer',
+                    'Mapa',
                     style: TextStyle(color: Colors.orange),
                   ),
                   trailing: Icon(Icons.navigate_next, color: Colors.orange),
@@ -151,7 +147,7 @@ class CustomDrawer extends StatelessWidget {
               : ListTile(
                   leading: Icon(Icons.attach_money, color: Colors.orange),
                   title: Text(
-                    'Ganancias y pagos',
+                    'Ganancias',
                     style: TextStyle(color: Colors.orange),
                   ),
                   trailing: Icon(Icons.navigate_next, color: Colors.orange),
@@ -161,7 +157,7 @@ class CustomDrawer extends StatelessWidget {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => EarningsAndPayments()));
+                            builder: (context) => DriverEarnings()));
                   },
                 ),
           !appState.userIsDriver
@@ -180,19 +176,17 @@ class CustomDrawer extends StatelessWidget {
                             builder: (context) => DriverMessages()));
                   },
                 ),
-          Container(
-            color: Colors.red[900],
-            child: ListTile(
-              leading: Icon(Icons.taxi_alert, color: Colors.white),
-              title: Text('Emergencia', style: TextStyle(color: Colors.white)),
-              trailing: Icon(Icons.phone, color: Colors.white),
-              onTap: () async {
-                Navigator.pop(context);
-                if (await canLaunch('tel:911')) {
-                  await launch('tel:911');
-                }
-              },
-            ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.phone, color: Colors.red[700]),
+            title: Text('Emergencia', style: TextStyle(color: Colors.red[700])),
+            trailing: Icon(Icons.navigate_next, color: Colors.red[700]),
+            onTap: () async {
+              Navigator.pop(context);
+              if (await canLaunch('tel:911')) {
+                await launch('tel:911');
+              }
+            },
           ),
         ],
       ),

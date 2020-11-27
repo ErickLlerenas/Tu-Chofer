@@ -16,6 +16,7 @@ class _ProfileState extends State<Profile> {
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          title: Text('Perfil', style: TextStyle(color: Colors.grey[700])),
           backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
@@ -26,11 +27,6 @@ class _ProfileState extends State<Profile> {
                   child: Column(
                     children: <Widget>[
                       SizedBox(height: 35),
-                      Text('Mi perfil',
-                          style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[700])),
                       SizedBox(
                         height: 20,
                       ),

@@ -4,7 +4,17 @@ import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:search_map_place/search_map_place.dart';
 
-class ToInput extends StatelessWidget {
+class ToInput extends StatefulWidget {
+  @override
+  _ToInputState createState() => _ToInputState();
+}
+
+class _ToInputState extends State<ToInput> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);

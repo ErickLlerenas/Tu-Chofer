@@ -10,13 +10,20 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
+  ScrollController _userScrollController = new ScrollController();
   TextEditingController _messageController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    _userScrollController.animateTo(0.0,
+        curve: Curves.easeOut, duration: const Duration(milliseconds: 300));
     return Scaffold(
         backgroundColor: Colors.grey[100],
         appBar: AppBar(
+          title: Text(
+            "Mensajes",
+            style: TextStyle(color: Colors.grey[700]),
+          ),
           backgroundColor: Colors.grey[100],
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
@@ -37,18 +44,11 @@ class _MessagesState extends State<Messages> {
               return SingleChildScrollView(
                 child: Column(
                   children: [
-                    Image.asset(
-                      'assets/icon.png',
-                      width: 100,
-                    ),
-                    Text(
-                      "Tu Chofer Chat",
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    SizedBox(height: 20),
                     Container(
-                      height: MediaQuery.of(context).size.height - 340,
+                      height: MediaQuery.of(context).size.height / 1.3,
                       child: SingleChildScrollView(
+                        controller: _userScrollController,
+                        reverse: true,
                         child: Column(
                             children: userMessages.map((msg) {
                           var time;
@@ -140,6 +140,9 @@ class _MessagesState extends State<Messages> {
                             child: Container(
                               color: Colors.white,
                               child: TextFormField(
+                                onChanged: (String text) {
+                                  setState(() {});
+                                },
                                 textCapitalization:
                                     TextCapitalization.sentences,
                                 style: TextStyle(fontSize: 18),
@@ -157,40 +160,45 @@ class _MessagesState extends State<Messages> {
                               ),
                             ),
                           ),
-                          Expanded(
-                            flex: 2,
-                            child: Container(
-                              child: CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Colors.white,
-                                child: IconButton(
-                                  color: Colors.orange,
-                                  icon: Icon(Icons.send),
-                                  onPressed: () async {
-                                    await Firestore.instance
-                                        .collection('Users')
-                                        .document(appState.phone)
-                                        .get()
-                                        .then((user) async {
-                                      List temp = [];
-                                      temp = user['messages'];
-                                      temp.add({
-                                        'name': appState.name,
-                                        'message': _messageController.text,
-                                        'time': new DateTime.now()
-                                      });
-                                      await Firestore.instance
-                                          .collection('Users')
-                                          .document(appState.phone)
-                                          .updateData({'messages': temp});
-                                    });
+                          _messageController.text.isNotEmpty
+                              ? Expanded(
+                                  flex: 2,
+                                  child: Container(
+                                    child: CircleAvatar(
+                                      radius: 30,
+                                      backgroundColor: Colors.white,
+                                      child: IconButton(
+                                        color: Colors.orange,
+                                        icon: Icon(Icons.send),
+                                        onPressed: () async {
+                                          await Firestore.instance
+                                              .collection('Users')
+                                              .document(appState.phone)
+                                              .get()
+                                              .then((user) async {
+                                            List temp = [];
+                                            temp = user['messages'];
+                                            temp.add({
+                                              'name': appState.name,
+                                              'message':
+                                                  _messageController.text,
+                                              'time': new DateTime.now()
+                                            });
+                                            await Firestore.instance
+                                                .collection('Users')
+                                                .document(appState.phone)
+                                                .updateData({'messages': temp});
+                                          });
 
-                                    _messageController.text = "";
-                                  },
-                                ),
-                              ),
-                            ),
-                          )
+                                          setState(() {
+                                            _messageController.text = "";
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Expanded(child: Container())
                         ],
                       ),
                     )

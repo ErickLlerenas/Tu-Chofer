@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:chofer/components/driver-footer.dart';
 import 'package:chofer/components/custom-drawer.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,6 +22,7 @@ class DriverMap extends StatefulWidget {
 class _DriverMapState extends State<DriverMap> {
   bool isActive = false;
   bool driverIsOnDriverScreen = true;
+  List sortedDriversList = [];
   Location _location = Location();
   StreamSubscription locationSubscription;
   Marker _marker;
@@ -102,9 +105,86 @@ class _DriverMapState extends State<DriverMap> {
     if (locationSubscription != null) {
       locationSubscription.cancel();
     }
-    isActive = false;
     driverIsOnDriverScreen = false;
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    checkIfDriverIsActive();
+    super.initState();
+  }
+
+  Future<String> get _localPathNumber async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFileNumber async {
+    final path = await _localPathNumber;
+    return File('$path/login_number.txt');
+  }
+
+  Future<File> writePhone(String phoneNumber) async {
+    final file = await _localFileNumber;
+    return file.writeAsString('$phoneNumber');
+  }
+
+  Future<String> readPhoneNumber() async {
+    try {
+      final file = await _localFileNumber;
+      return await file.readAsString();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  Future checkIfDriverIsActive() async {
+    await Firestore.instance
+        .collection('Drivers')
+        .document(await readPhoneNumber())
+        .get()
+        .then((value) {
+      setState(() {
+        isActive = value.data['isActive'];
+      });
+    });
+  }
+
+  Future makeClosestDriversList(user) async {
+    List driversList = [];
+
+    await Firestore.instance
+        .collection('Drivers')
+        .getDocuments()
+        .then((drivers) {
+      drivers.documents.forEach((driver) async {
+        if (driver.data['currentLocation'] != null) {
+          //Set Driver LatLng
+          LatLng driverLatLng = LatLng(driver.data['currentLocation'].latitude,
+              driver.data['currentLocation'].longitude);
+
+          //Set User LatLng
+          LatLng userLatLng =
+              LatLng(user['origin'].latitude, user['origin'].longitude);
+
+          //Get the distance between those two Points
+          var distance = await _googleMapsServices.getDistanceValue(
+              driverLatLng, userLatLng);
+
+          //Create an array with the list
+          driversList.add({'distance': distance, 'driver': driver['phone']});
+
+          //Sort the list so the nearest drivers are the firsts
+          driversList.sort((a, b) => a['distance'].compareTo(b['distance']));
+
+          //Equal the List to global list
+          setState(() {
+            sortedDriversList = driversList;
+          });
+        }
+      });
+    });
   }
 
   @override
@@ -112,20 +192,6 @@ class _DriverMapState extends State<DriverMap> {
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.local_taxi),
-          backgroundColor: isActive ? Colors.orange : Colors.black87,
-          onPressed: () {
-            setState(() {
-              isActive = !isActive;
-              Firestore.instance
-                  .collection('Drivers')
-                  .document(appState.phone)
-                  .updateData({'isActive': isActive});
-              isActive ? getCurrentLocation(appState) : clearCar();
-            });
-          },
-        ),
         key: _scaffoldKey,
         drawer: CustomDrawer(),
         body: StreamBuilder(
@@ -135,26 +201,10 @@ class _DriverMapState extends State<DriverMap> {
               if (!snapshot.hasData) return Container();
 
               if (isActive) {
-                snapshot.data.documents.forEach((DocumentSnapshot user) {
-                  print(user['isAskingService']);
+                snapshot.data.documents.forEach((DocumentSnapshot user) async {
                   if (user['isAskingService']) {
-                    Firestore.instance
-                        .collection('Drivers')
-                        .getDocuments()
-                        .then((drivers) {
-                      drivers.documents.forEach((driver) async {
-                        if (driver.data['currentLocation'] != null) {
-                          LatLng driverLatLng = LatLng(
-                              driver.data['currentLocation'].latitude,
-                              driver.data['currentLocation'].longitude);
-                          LatLng userLatLng = LatLng(user['origin'].latitude,
-                              user['origin'].longitude);
-                          print(driver.data['phone']);
-                          print(await _googleMapsServices.getDistanceValue(
-                              driverLatLng, userLatLng));
-                        }
-                      });
-                    });
+                    makeClosestDriversList(user);
+                    print("SORTED LIST: $sortedDriversList");
                   }
                 });
               }
@@ -190,6 +240,42 @@ class _DriverMapState extends State<DriverMap> {
                     onPressed: () => _scaffoldKey.currentState.openDrawer(),
                   ),
                 ),
+                DraggableScrollableSheet(
+                    expand: true,
+                    maxChildSize: 0.1,
+                    initialChildSize: 0.1,
+                    minChildSize: 0.1,
+                    builder: (context, controller) {
+                      return InkWell(
+                          onTap: () {
+                            setState(() {
+                              isActive = !isActive;
+                              Firestore.instance
+                                  .collection('Drivers')
+                                  .document(appState.phone)
+                                  .updateData({'isActive': isActive});
+                              isActive
+                                  ? getCurrentLocation(appState)
+                                  : clearCar();
+                            });
+                          },
+                          child: Container(
+                              color: Colors.black,
+                              child: ListView(
+                                children: <Widget>[
+                                  Text(
+                                    !isActive
+                                        ? 'Estás desconectado'
+                                        : 'Conectado. Buscando viajes ...',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              )));
+                    })
               ]);
             }));
   }

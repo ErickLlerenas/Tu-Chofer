@@ -37,14 +37,6 @@ class AppState with ChangeNotifier {
   int distanceValue;
   int durationValue;
   bool isLoadingPrices;
-  List userHistory = [
-    {
-      'origin': 'Nogal 37 Valle de las Garzas',
-      'destination': 'Soriana',
-      'cost': 35,
-      'date': 'Hoy xd'
-    }
-  ];
   List driverHistory = [];
   List userMessages = [];
   List driverMessages = [];
@@ -82,8 +74,7 @@ class AppState with ChangeNotifier {
   int costoBase;
   double costoKilometro;
   double costoMinuto;
-  int hack =
-      0; //This is used at the user map, whenever a driver accepts the user petition, this prevents the app to bug
+  int hack = 0;
 
   get phone => _phone;
   get name => _name;
@@ -488,7 +479,11 @@ class AppState with ChangeNotifier {
   //DOWNLOADS THE IMAGE FROM FIREBASE
   Future downloadProfilePicture(number) async {
     try {
-      Firestore.instance.collection('Users').document(phone).get().then((doc) {
+      await Firestore.instance
+          .collection('Users')
+          .document(phone)
+          .get()
+          .then((doc) {
         if (doc.exists) {
           if (doc['image'] != null) {
             downloadURL = doc['image'];

@@ -52,7 +52,6 @@ class _MapState extends State<Map> {
                 if (document['tripID'] != null) {
                   if (document['tripID']['userID'] == appState.phone) {
                     if (document['tripID']['accepted']) {
-                      print('Service Accepted XD');
                       if (appState.hack == 0) {
                         if (appState.isAskingService) {
                           Navigator.pop(context);
@@ -66,7 +65,6 @@ class _MapState extends State<Map> {
                           driverCarModel = document['carModel'];
                         }
                       }
-                      print(appState.serviceAccepted);
                     }
                   }
                 }

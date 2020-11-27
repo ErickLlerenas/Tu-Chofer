@@ -35,13 +35,18 @@ class _DriverFooterState extends State<DriverFooter> {
     super.initState();
   }
 
-  void playSound() async {
+  void playSound() {
     assetsAudioPlayer.open(Audio("assets/tone.mp3"));
+  }
+
+  void stopSound() {
+    assetsAudioPlayer.stop();
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    stopSound();
     super.dispose();
   }
 
@@ -62,11 +67,10 @@ class _DriverFooterState extends State<DriverFooter> {
   }
 
   void _showDialog() {
-    // flutter defined function
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        // return object of type Dialog
         return AlertDialog(
             title: Text(
               "Validando...",
@@ -79,7 +83,9 @@ class _DriverFooterState extends State<DriverFooter> {
             content: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                CircularProgressIndicator(),
+                CircularProgressIndicator(
+                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.orange),
+                ),
               ],
             ));
       },
@@ -94,9 +100,9 @@ class _DriverFooterState extends State<DriverFooter> {
         ? Container()
         : DraggableScrollableSheet(
             expand: true,
-            maxChildSize: 0.85,
-            initialChildSize: 0.85,
-            minChildSize: 0.85,
+            maxChildSize: 0.8,
+            initialChildSize: 0.8,
+            minChildSize: 0.8,
             builder: (context, controller) {
               return Container(
                   color: Colors.white,
@@ -106,7 +112,7 @@ class _DriverFooterState extends State<DriverFooter> {
                         '¡Nueva solicitud!',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 24,
                             color: Colors.grey[700],
                             fontWeight: FontWeight.bold),
                       ),
@@ -163,12 +169,13 @@ class _DriverFooterState extends State<DriverFooter> {
                           title: ButtonTheme(
                         height: 50,
                         child: FlatButton(
-                          color: Colors.teal,
+                          color: Colors.orange,
                           child: Text(
                             'Aceptar',
                             style: TextStyle(color: Colors.white),
                           ),
                           onPressed: () {
+                            stopSound();
                             setState(() {
                               _time = 0;
                             });
