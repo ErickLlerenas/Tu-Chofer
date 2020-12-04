@@ -1,29 +1,21 @@
+import 'package:chofer/requests/google-maps-requests.dart';
 import 'package:chofer/screens/user/change-destination.dart';
 import 'package:chofer/screens/user/change-origin.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserRequestFooter extends StatefulWidget {
-  final String driverImage;
-  final String driverName;
-  final String driverCarImage;
-  final String driverCarName;
-  final String driverCarPlates;
-  final String driverPhone;
-  UserRequestFooter(
-      {this.driverCarImage,
-      this.driverCarName,
-      this.driverCarPlates,
-      this.driverImage,
-      this.driverName,
-      this.driverPhone});
   @override
   _UserRequestFooterState createState() => _UserRequestFooterState();
 }
 
 class _UserRequestFooterState extends State<UserRequestFooter> {
+  GoogleMapsServices _googleMapsServices = GoogleMapsServices();
+  List sortedDriversList = [];
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -90,29 +82,15 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
                                 'Pide tu chofer',
                                 style: TextStyle(color: Colors.white),
                               ),
-                              onPressed: () {
+                              onPressed: () async {
                                 _showSearchingDriversDialog(appState.phone);
                                 appState.userIsAskingService();
-                                Firestore.instance
-                                    .collection('Users')
-                                    .document(appState.phone)
-                                    .updateData({
-                                  'isAskingService': true,
-                                  'destinationName':
-                                      appState.destinationController.text,
-                                  'originName':
-                                      appState.locationController.text,
-                                  'origin': new GeoPoint(
-                                      appState.origin.latitude,
-                                      appState.origin.longitude),
-                                  'destination': new GeoPoint(
-                                      appState.destination.latitude,
-                                      appState.destination.longitude),
-                                  'phone': appState.phone,
-                                  'price': appState.costoServicio,
-                                  'distance': appState.distance,
-                                  'duration': appState.duration
-                                });
+                                await _getClosestDriversList(
+                                    appState.origin, appState.phone);
+                                await _updateFirestoreData(
+                                    appState, sortedDriversList);
+                                await _removeClosestDriverIfNotAcceptedAfter10Seconds(
+                                    appState, sortedDriversList);
                               },
                             ),
                           ),
@@ -159,12 +137,76 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
                   .collection('Users')
                   .document('$phone')
                   .updateData({
-                'tripID': {'isAskingService': false}
+                'tripID': {
+                  'isAskingService': false,
+                  'driversList': sortedDriversList
+                }
               });
             },
           )),
         );
       },
     );
+  }
+
+  Future _getClosestDriversList(origin, userPhone) async {
+    List driversList = [];
+
+    QuerySnapshot drivers =
+        await Firestore.instance.collection('Drivers').getDocuments();
+
+    for (var driver in drivers.documents) {
+      if (driver.data['currentLocation'] != null) {
+        //Set Driver LatLng
+        LatLng driverLatLng = LatLng(driver.data['currentLocation'].latitude,
+            driver.data['currentLocation'].longitude);
+
+        //Set User LatLng
+        LatLng userLatLng = LatLng(origin.latitude, origin.longitude);
+
+        //Get the distance between those two Points
+        var distance = await _googleMapsServices.getDistanceValue(
+            driverLatLng, userLatLng);
+
+        //Create an array with the list
+        //important to compare if are not equal, other whise the user will call the same person as a driver
+        if (driver['phone'] != userPhone)
+          driversList.add({'distance': distance, 'driver': driver['phone']});
+
+        //Sort the list so the nearest drivers are the firsts
+        driversList.sort((a, b) => a['distance'].compareTo(b['distance']));
+
+        //Equal the List to global list
+        setState(() {
+          sortedDriversList = driversList;
+        });
+      }
+    }
+  }
+
+  Future _updateFirestoreData(AppState appState, List list) async {
+    Firestore.instance.collection('Users').document(appState.phone).updateData({
+      'destinationName': appState.destinationController.text,
+      'originName': appState.locationController.text,
+      'origin':
+          new GeoPoint(appState.origin.latitude, appState.origin.longitude),
+      'destination': new GeoPoint(
+          appState.destination.latitude, appState.destination.longitude),
+      'phone': appState.phone,
+      'price': appState.costoServicio,
+      'distance': appState.distance,
+      'duration': appState.duration,
+      'tripID': {'isAskingService': true, 'driversList': list}
+    });
+  }
+
+  Future _removeClosestDriverIfNotAcceptedAfter10Seconds(
+      AppState appState, List drivers) async {
+    List clone = []..addAll(drivers);
+    for (var driver in drivers) {
+      await Future.delayed(Duration(seconds: 10));
+      clone.remove(driver);
+      await _updateFirestoreData(appState, clone);
+    }
   }
 }

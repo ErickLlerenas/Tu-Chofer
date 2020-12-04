@@ -159,8 +159,7 @@ class _DriverFooterState extends State<DriverFooter> {
                                 .updateData({
                               'tripID': {
                                 'userID': widget.phone,
-                                'accepted': true,
-                                'driversOrderList': []
+                                'accepted': true
                               }
                             });
                           },

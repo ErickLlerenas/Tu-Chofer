@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:chofer/widgets/driver/driver-footer.dart';
 import 'package:chofer/widgets/my-drawer.dart';
-// import 'package:chofer/requests/google-maps-requests.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -22,7 +21,6 @@ class DriverMap extends StatefulWidget {
 class _DriverMapState extends State<DriverMap> {
   bool driverIsActive = false;
   bool driverIsOnDriverScreen = true;
-  List sortedDriversList = [];
   Location _location = Location();
   StreamSubscription locationSubscription;
   Marker _marker;
@@ -36,7 +34,6 @@ class _DriverMapState extends State<DriverMap> {
   String userPhone;
   bool userIsAskingService = false;
   ByteData byteData;
-  // GoogleMapsServices _googleMapsServices = GoogleMapsServices();
 
   Future getMarker() async {
     byteData = await DefaultAssetBundle.of(context).load("assets/car.png");
@@ -165,42 +162,6 @@ class _DriverMapState extends State<DriverMap> {
     });
   }
 
-  // Future _getClosestDriversList(user) async {
-  //   List driversList = [];
-
-  //   await Firestore.instance
-  //       .collection('Drivers')
-  //       .getDocuments()
-  //       .then((drivers) {
-  //     drivers.documents.forEach((driver) async {
-  //       if (driver.data['currentLocation'] != null) {
-  //         //Set Driver LatLng
-  //         LatLng driverLatLng = LatLng(driver.data['currentLocation'].latitude,
-  //             driver.data['currentLocation'].longitude);
-
-  //         //Set User LatLng
-  //         LatLng userLatLng =
-  //             LatLng(user['origin'].latitude, user['origin'].longitude);
-
-  //         //Get the distance between those two Points
-  //         var distance = await _googleMapsServices.getDistanceValue(
-  //             driverLatLng, userLatLng);
-
-  //         //Create an array with the list
-  //         driversList.add({'distance': distance, 'driver': driver['phone']});
-
-  //         //Sort the list so the nearest drivers are the firsts
-  //         driversList.sort((a, b) => a['distance'].compareTo(b['distance']));
-
-  //         //Equal the List to global list
-  //         setState(() {
-  //           sortedDriversList = driversList;
-  //         });
-  //       }
-  //     });
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -217,9 +178,12 @@ class _DriverMapState extends State<DriverMap> {
               if (driverIsActive) {
                 snapshot.data.documents.forEach((DocumentSnapshot user) {
                   if (user['tripID'] != null) {
-                    if (user['tripID']['driversList'][0] == appState.phone) {
+                    if (user['tripID']['driversList'][0]['driver'] ==
+                        appState.phone) {
                       userIsAskingService = user['tripID']['isAskingService'];
                       if (userIsAskingService) {
+                        print(
+                            "NORMAN XXDDXD ${user['tripID']['driversList'][0]['driver']}");
                         originName = user['originName'];
                         destinationName = user['destinationName'];
                         distance = user['distance'];
