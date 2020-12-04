@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:chofer/components/custom-drawer.dart';
+import 'package:chofer/widgets/my-drawer.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DriverEarnings extends StatefulWidget {
@@ -71,7 +71,7 @@ class _DriverEarningsState extends State<DriverEarnings> {
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
-        drawer: CustomDrawer(),
+        drawer: MyDrawer(),
         body: isLoadingHistory
             ? Center(
                 child: CircularProgressIndicator(

@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 class DriverFooter extends StatefulWidget {
   final String origin;
   final String destination;
-  final int price;
+  final double price;
   final String distance;
   final String duration;
   final String phone;
@@ -66,32 +66,6 @@ class _DriverFooterState extends State<DriverFooter> {
     );
   }
 
-  void _showDialog() {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            title: Text(
-              "Validando...",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold),
-            ),
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                CircularProgressIndicator(
-                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.orange),
-                ),
-              ],
-            ));
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -109,7 +83,7 @@ class _DriverFooterState extends State<DriverFooter> {
                   child: ListView(
                     children: <Widget>[
                       Text(
-                        '¡Nueva solicitud!',
+                        '¡Viaje encontrado!',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 24,
@@ -189,7 +163,6 @@ class _DriverFooterState extends State<DriverFooter> {
                                 'driversOrderList': []
                               }
                             });
-                            _showDialog();
                           },
                         ),
                       ))

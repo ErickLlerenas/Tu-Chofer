@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:chofer/screens/enable-location.dart';
-import 'package:chofer/screens/login.dart';
-import 'package:chofer/screens/home.dart';
+import 'package:chofer/screens/login/enable-location.dart';
+import 'package:chofer/screens/login/login.dart';
+import 'package:chofer/screens/user/home.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:chofer/states/app-state.dart';

@@ -1,14 +1,14 @@
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
-import 'package:chofer/components/custom-drawer.dart';
+import 'package:chofer/widgets/my-drawer.dart';
 import 'package:provider/provider.dart';
 
-class Profile extends StatefulWidget {
+class UserProfile extends StatefulWidget {
   @override
-  _ProfileState createState() => _ProfileState();
+  _UserProfileState createState() => _UserProfileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _UserProfileState extends State<UserProfile> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -21,7 +21,7 @@ class _ProfileState extends State<Profile> {
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
-        drawer: CustomDrawer(),
+        drawer: MyDrawer(),
         body: Builder(
             builder: (context) => SingleChildScrollView(
                   child: Column(

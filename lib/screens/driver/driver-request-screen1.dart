@@ -1,5 +1,5 @@
-import 'package:chofer/components/custom-drawer.dart';
-import 'package:chofer/screens/driver-request-screen2.dart';
+import 'package:chofer/widgets/my-drawer.dart';
+import 'package:chofer/screens/driver/driver-request-screen2.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +22,7 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
         elevation: 0,
         iconTheme: new IconThemeData(color: Colors.black),
       ),
-      drawer: CustomDrawer(),
+      drawer: MyDrawer(),
       body: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.all(40),

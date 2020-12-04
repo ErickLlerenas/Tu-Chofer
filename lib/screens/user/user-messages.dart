@@ -1,15 +1,15 @@
-import 'package:chofer/components/custom-drawer.dart';
+import 'package:chofer/widgets/my-drawer.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class Messages extends StatefulWidget {
+class UserMessages extends StatefulWidget {
   @override
-  _MessagesState createState() => _MessagesState();
+  _UserMessagesState createState() => _UserMessagesState();
 }
 
-class _MessagesState extends State<Messages> {
+class _UserMessagesState extends State<UserMessages> {
   ScrollController _userScrollController = new ScrollController();
   TextEditingController _messageController = TextEditingController();
   @override
@@ -28,7 +28,7 @@ class _MessagesState extends State<Messages> {
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
-        drawer: CustomDrawer(),
+        drawer: MyDrawer(),
         body: StreamBuilder(
             stream: Firestore.instance
                 .collection('Users')

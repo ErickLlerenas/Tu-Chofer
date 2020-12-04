@@ -105,7 +105,7 @@ packages:
       name: equatable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.5"
   fake_async:
     dependency: transitive
     description:
@@ -198,13 +198,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  geoflutterfire:
-    dependency: "direct main"
-    description:
-      name: geoflutterfire
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.0"
   geolocator:
     dependency: "direct main"
     description:
@@ -415,34 +408,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.23.1"
-  sa_anicoto:
-    dependency: transitive
-    description:
-      name: sa_anicoto
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.2"
-  sa_multi_tween:
-    dependency: transitive
-    description:
-      name: sa_multi_tween
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.1"
-  sa_stateless_animation:
-    dependency: transitive
-    description:
-      name: sa_stateless_animation
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.1"
-  sa_v1_migration:
-    dependency: transitive
-    description:
-      name: sa_v1_migration
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.2"
   search_map_place:
     dependency: "direct main"
     description:
@@ -450,13 +415,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.0"
-  simple_animations:
-    dependency: "direct main"
-    description:
-      name: simple_animations
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.2.1"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -497,13 +455,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0-nullsafety.2"
-  supercharged:
-    dependency: transitive
-    description:
-      name: supercharged
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.6.0"
   term_glyph:
     dependency: transitive
     description:

@@ -1,4 +1,4 @@
-import 'package:chofer/components/custom-drawer.dart';
+import 'package:chofer/widgets/my-drawer.dart';
 import 'package:flutter/material.dart';
 
 class TermsAndConditions extends StatelessWidget {
@@ -15,7 +15,7 @@ class TermsAndConditions extends StatelessWidget {
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
-        drawer: CustomDrawer(),
+        drawer: MyDrawer(),
         body: SingleChildScrollView(
           child: Center(
               child: Container(

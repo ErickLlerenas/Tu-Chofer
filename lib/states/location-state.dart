@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:location/location.dart';
-import 'package:chofer/screens/Home.dart';
+import 'package:chofer/screens/user/home.dart';
 
 class LocationState with ChangeNotifier {
   Location location = new Location();

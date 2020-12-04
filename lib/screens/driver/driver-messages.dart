@@ -1,4 +1,4 @@
-import 'package:chofer/components/custom-drawer.dart';
+import 'package:chofer/widgets/my-drawer.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +30,7 @@ class _DriverMessagesState extends State<DriverMessages> {
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
-        drawer: CustomDrawer(),
+        drawer: MyDrawer(),
         body: StreamBuilder(
             stream: Firestore.instance
                 .collection('Drivers')

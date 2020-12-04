@@ -1,19 +1,19 @@
-import 'package:chofer/screens/Home.dart';
-import 'package:chofer/screens/driver-messages.dart';
-import 'package:chofer/screens/driver-request-pending.dart';
-import 'package:chofer/screens/driver-request-screen1.dart';
-import 'package:chofer/screens/driver-earnings.dart';
-import 'package:chofer/screens/history.dart';
-import 'package:chofer/screens/messages.dart';
-import 'package:chofer/screens/driver-map.dart';
-import 'package:chofer/screens/profile.dart';
-import 'package:chofer/screens/terms-and-conditions.dart';
+import 'package:chofer/screens/user/home.dart';
+import 'package:chofer/screens/driver/driver-messages.dart';
+import 'package:chofer/screens/driver/driver-request-pending.dart';
+import 'package:chofer/screens/driver/driver-request-screen1.dart';
+import 'package:chofer/screens/driver/driver-earnings.dart';
+import 'package:chofer/screens/user/user-history.dart';
+import 'package:chofer/screens/user/user-messages.dart';
+import 'package:chofer/screens/driver/driver-map.dart';
+import 'package:chofer/screens/user/user-profile.dart';
+import 'package:chofer/screens/user/user-terms-and-conditions.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class CustomDrawer extends StatelessWidget {
+class MyDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -54,7 +54,6 @@ class CustomDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pop(context);
               Navigator.push(
                   context, MaterialPageRoute(builder: (context) => Home()));
             },
@@ -65,9 +64,8 @@ class CustomDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pop(context);
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => Profile()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => UserProfile()));
             },
           ),
           ListTile(
@@ -76,9 +74,8 @@ class CustomDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pop(context);
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => History()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => UserHistory()));
             },
           ),
           ListTile(
@@ -87,9 +84,8 @@ class CustomDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pop(context);
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => Messages()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => UserMessages()));
             },
           ),
           appState.userIsDriver
@@ -99,7 +95,6 @@ class CustomDrawer extends StatelessWidget {
                   title: Text('Quiero ser chofer'),
                   trailing: Icon(Icons.navigate_next),
                   onTap: () {
-                    Navigator.pop(context);
                     Navigator.pop(context);
                     appState.userWantsToBeDriver
                         ? Navigator.push(
@@ -117,7 +112,6 @@ class CustomDrawer extends StatelessWidget {
             title: Text('Términos y condiciones'),
             trailing: Icon(Icons.navigate_next),
             onTap: () {
-              Navigator.pop(context);
               Navigator.pop(context);
               Navigator.push(
                   context,
@@ -137,7 +131,6 @@ class CustomDrawer extends StatelessWidget {
                   trailing: Icon(Icons.navigate_next, color: Colors.orange),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pop(context);
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => DriverMap()));
                   },
@@ -153,7 +146,6 @@ class CustomDrawer extends StatelessWidget {
                   trailing: Icon(Icons.navigate_next, color: Colors.orange),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pop(context);
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -168,7 +160,6 @@ class CustomDrawer extends StatelessWidget {
                       Text('Mensajes', style: TextStyle(color: Colors.orange)),
                   trailing: Icon(Icons.navigate_next, color: Colors.orange),
                   onTap: () {
-                    Navigator.pop(context);
                     Navigator.pop(context);
                     Navigator.push(
                         context,

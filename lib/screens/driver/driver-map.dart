@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:chofer/components/driver-footer.dart';
-import 'package:chofer/components/custom-drawer.dart';
-import 'package:chofer/requests/google-maps-requests.dart';
+import 'package:chofer/widgets/driver/driver-footer.dart';
+import 'package:chofer/widgets/my-drawer.dart';
+// import 'package:chofer/requests/google-maps-requests.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -20,7 +20,7 @@ class DriverMap extends StatefulWidget {
 }
 
 class _DriverMapState extends State<DriverMap> {
-  bool isActive = false;
+  bool driverIsActive = false;
   bool driverIsOnDriverScreen = true;
   List sortedDriversList = [];
   Location _location = Location();
@@ -28,20 +28,25 @@ class _DriverMapState extends State<DriverMap> {
   Marker _marker;
   GoogleMapController _mapController;
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  GoogleMapsServices _googleMapsServices = GoogleMapsServices();
+  String originName;
+  String destinationName;
+  double price;
+  String distance;
+  String duration;
+  String userPhone;
+  bool userIsAskingService = false;
+  ByteData byteData;
+  // GoogleMapsServices _googleMapsServices = GoogleMapsServices();
 
   Future getMarker() async {
-    ByteData byteData =
-        await DefaultAssetBundle.of(context).load("assets/car.png");
-    return byteData.buffer.asUint8List();
+    byteData = await DefaultAssetBundle.of(context).load("assets/car.png");
   }
 
-  void updateCarMarker(
-      LocationData newLocalData, Uint8List imageData, appState) async {
+  void updateCarMarker(LocationData newLocalData, Uint8List imageData) async {
     LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
     await Firestore.instance
         .collection('Drivers')
-        .document(appState.phone)
+        .document(await readPhoneNumber())
         .updateData({
       'currentLocation':
           new GeoPoint(newLocalData.latitude, newLocalData.longitude),
@@ -64,33 +69,36 @@ class _DriverMapState extends State<DriverMap> {
     _marker = null;
   }
 
-  void getCurrentLocation(appState) async {
-    try {
-      Uint8List imageData = await getMarker();
-      var location = await _location.getLocation();
-      updateCarMarker(location, imageData, appState);
+  void getCurrentLocation() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        Uint8List imageData = byteData.buffer.asUint8List();
+        var location = await _location.getLocation();
+        updateCarMarker(location, imageData);
 
-      if (locationSubscription != null) {
-        locationSubscription.cancel();
-      }
+        if (locationSubscription != null) {
+          locationSubscription.cancel();
+        }
 
-      locationSubscription = _location.onLocationChanged.listen((newLocalData) {
-        if (_mapController != null) {
-          if (isActive) {
-            if (driverIsOnDriverScreen) {
-              _mapController.animateCamera(CameraUpdate.newCameraPosition(
-                  new CameraPosition(
-                      bearing: 0,
-                      tilt: 0,
-                      zoom: 16.5,
-                      target: LatLng(
-                          newLocalData.latitude, newLocalData.longitude))));
-              updateCarMarker(newLocalData, imageData, appState);
+        locationSubscription =
+            _location.onLocationChanged.listen((newLocalData) {
+          if (_mapController != null) {
+            if (driverIsActive) {
+              if (driverIsOnDriverScreen) {
+                _mapController.animateCamera(CameraUpdate.newCameraPosition(
+                    new CameraPosition(
+                        bearing: 0,
+                        tilt: 0,
+                        zoom: 16.5,
+                        target: LatLng(
+                            newLocalData.latitude, newLocalData.longitude))));
+                updateCarMarker(newLocalData, imageData);
+              }
             }
           }
-        }
-      });
-    } catch (e) {}
+        });
+      } catch (e) {}
+    });
   }
 
   void onMapCreated(GoogleMapController controller) {
@@ -111,6 +119,7 @@ class _DriverMapState extends State<DriverMap> {
 
   @override
   void initState() {
+    getMarker();
     checkIfDriverIsActive();
     super.initState();
   }
@@ -139,53 +148,58 @@ class _DriverMapState extends State<DriverMap> {
     }
   }
 
-  Future checkIfDriverIsActive() async {
-    await Firestore.instance
-        .collection('Drivers')
-        .document(await readPhoneNumber())
-        .get()
-        .then((value) {
-      setState(() {
-        isActive = value.data['isActive'];
+  void checkIfDriverIsActive() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await Firestore.instance
+          .collection('Drivers')
+          .document(await readPhoneNumber())
+          .get()
+          .then((value) {
+        setState(() {
+          driverIsActive = value.data['isActive'];
+          if (driverIsActive) {
+            getCurrentLocation();
+          }
+        });
       });
     });
   }
 
-  Future makeClosestDriversList(user) async {
-    List driversList = [];
+  // Future _getClosestDriversList(user) async {
+  //   List driversList = [];
 
-    await Firestore.instance
-        .collection('Drivers')
-        .getDocuments()
-        .then((drivers) {
-      drivers.documents.forEach((driver) async {
-        if (driver.data['currentLocation'] != null) {
-          //Set Driver LatLng
-          LatLng driverLatLng = LatLng(driver.data['currentLocation'].latitude,
-              driver.data['currentLocation'].longitude);
+  //   await Firestore.instance
+  //       .collection('Drivers')
+  //       .getDocuments()
+  //       .then((drivers) {
+  //     drivers.documents.forEach((driver) async {
+  //       if (driver.data['currentLocation'] != null) {
+  //         //Set Driver LatLng
+  //         LatLng driverLatLng = LatLng(driver.data['currentLocation'].latitude,
+  //             driver.data['currentLocation'].longitude);
 
-          //Set User LatLng
-          LatLng userLatLng =
-              LatLng(user['origin'].latitude, user['origin'].longitude);
+  //         //Set User LatLng
+  //         LatLng userLatLng =
+  //             LatLng(user['origin'].latitude, user['origin'].longitude);
 
-          //Get the distance between those two Points
-          var distance = await _googleMapsServices.getDistanceValue(
-              driverLatLng, userLatLng);
+  //         //Get the distance between those two Points
+  //         var distance = await _googleMapsServices.getDistanceValue(
+  //             driverLatLng, userLatLng);
 
-          //Create an array with the list
-          driversList.add({'distance': distance, 'driver': driver['phone']});
+  //         //Create an array with the list
+  //         driversList.add({'distance': distance, 'driver': driver['phone']});
 
-          //Sort the list so the nearest drivers are the firsts
-          driversList.sort((a, b) => a['distance'].compareTo(b['distance']));
+  //         //Sort the list so the nearest drivers are the firsts
+  //         driversList.sort((a, b) => a['distance'].compareTo(b['distance']));
 
-          //Equal the List to global list
-          setState(() {
-            sortedDriversList = driversList;
-          });
-        }
-      });
-    });
-  }
+  //         //Equal the List to global list
+  //         setState(() {
+  //           sortedDriversList = driversList;
+  //         });
+  //       }
+  //     });
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -193,18 +207,27 @@ class _DriverMapState extends State<DriverMap> {
 
     return Scaffold(
         key: _scaffoldKey,
-        drawer: CustomDrawer(),
+        drawer: MyDrawer(),
         body: StreamBuilder(
             stream: Firestore.instance.collection('Users').snapshots(),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (!snapshot.hasData) return Container();
 
-              if (isActive) {
-                snapshot.data.documents.forEach((DocumentSnapshot user) async {
-                  if (user['isAskingService']) {
-                    makeClosestDriversList(user);
-                    print("SORTED LIST: $sortedDriversList");
+              if (driverIsActive) {
+                snapshot.data.documents.forEach((DocumentSnapshot user) {
+                  if (user['tripID'] != null) {
+                    if (user['tripID']['driversList'][0] == appState.phone) {
+                      userIsAskingService = user['tripID']['isAskingService'];
+                      if (userIsAskingService) {
+                        originName = user['originName'];
+                        destinationName = user['destinationName'];
+                        distance = user['distance'];
+                        price = double.parse(user['price'].toString());
+                        userPhone = user['phone'];
+                        duration = user['duration'];
+                      }
+                    }
                   }
                 });
               }
@@ -222,15 +245,14 @@ class _DriverMapState extends State<DriverMap> {
                   zoomControlsEnabled: false,
                   markers: Set.of((_marker != null ? [_marker] : [])),
                 ),
-                isActive && snapshot.data.documents[0]['isAskingService']
+                driverIsActive && userIsAskingService
                     ? DriverFooter(
-                        origin: snapshot.data.documents[0]['originName'],
-                        destination: snapshot.data.documents[0]
-                            ['destinationName'],
-                        price: snapshot.data.documents[0]['price'],
-                        distance: snapshot.data.documents[0]['distance'],
-                        duration: snapshot.data.documents[0]['duration'],
-                        phone: snapshot.data.documents[0]['phone'])
+                        origin: originName,
+                        destination: destinationName,
+                        price: price,
+                        distance: distance,
+                        duration: duration,
+                        phone: userPhone)
                     : Container(),
                 Positioned(
                   left: 8,
@@ -249,13 +271,13 @@ class _DriverMapState extends State<DriverMap> {
                       return InkWell(
                           onTap: () {
                             setState(() {
-                              isActive = !isActive;
+                              driverIsActive = !driverIsActive;
                               Firestore.instance
                                   .collection('Drivers')
                                   .document(appState.phone)
-                                  .updateData({'isActive': isActive});
-                              isActive
-                                  ? getCurrentLocation(appState)
+                                  .updateData({'isActive': driverIsActive});
+                              driverIsActive
+                                  ? getCurrentLocation()
                                   : clearCar();
                             });
                           },
@@ -264,7 +286,7 @@ class _DriverMapState extends State<DriverMap> {
                               child: ListView(
                                 children: <Widget>[
                                   Text(
-                                    !isActive
+                                    !driverIsActive
                                         ? 'Estás desconectado'
                                         : 'Conectado. Buscando viajes ...',
                                     textAlign: TextAlign.center,

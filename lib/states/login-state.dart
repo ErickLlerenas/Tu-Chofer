@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:chofer/screens/enable-location.dart';
-import 'package:chofer/screens/login.dart';
-import 'package:chofer/screens/verification-code.dart';
+import 'package:chofer/screens/login/enable-location.dart';
+import 'package:chofer/screens/login/login.dart';
+import 'package:chofer/screens/login/verification-code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';

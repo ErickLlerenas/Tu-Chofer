@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:chofer/screens/driver-request-pending.dart';
+import 'package:chofer/screens/driver/driver-request-pending.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
@@ -74,34 +74,43 @@ class AppState with ChangeNotifier {
   int costoBase;
   double costoKilometro;
   double costoMinuto;
-  int hack = 0;
+  int runPopOnceHack = 0;
+  ByteData carMarker;
+
+  String driverCarName;
+  String driverCarImage;
+  String driverName;
+  String driverCarModel;
+  String driverImage;
+  String driverPhone;
+  String driverCarPlates;
 
   get phone => _phone;
   get name => _name;
 
   AppState() {
-    hasAlreadyPermissionsAndService();
-    getPhoneNumber();
-    getUserName();
+    _hasAlreadyPermissionsAndService();
+    _getPhoneNumber();
+    _getUserName();
   }
   // GETS THE USER PHONE NUMBER
-  Future getPhoneNumber() async {
-    _phone = await readPhoneNumber();
+  Future _getPhoneNumber() async {
+    _phone = await _readPhoneNumber();
     if (_phone.isNotEmpty) {
-      downloadProfilePicture(_phone);
-      checkIfIsDriver(_phone);
+      _downloadProfilePicture(_phone);
+      _checkIfIsDriver(_phone);
     }
     notifyListeners();
   }
 
   //GETS THE USER NAME
-  Future getUserName() async {
+  Future _getUserName() async {
     _name = await readName();
     tempName = _name;
     notifyListeners();
   }
 
-  Future getActualPrices() async {
+  Future _getActualPrices() async {
     await Firestore.instance
         .collection('Prices')
         .document('actualPrices')
@@ -116,7 +125,7 @@ class AppState with ChangeNotifier {
   }
 
   //  TO GET THE USERS LOCATION
-  void getUserLocation() async {
+  void _getUserLocation() async {
     try {
       Position position = await Geolocator()
           .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
@@ -136,13 +145,13 @@ class AppState with ChangeNotifier {
           placemark[0].country;
     } catch (error) {
       print(error);
-      getUserLocation();
+      _getUserLocation();
     }
     notifyListeners();
   }
 
   //  TO CREATE ROUTE
-  void createRoute(String encondedPoly) {
+  void _createRoute(String encondedPoly) {
     _polyLines = Set<Polyline>();
     _polyLines.add(Polyline(
         polylineId: PolylineId(Uuid().v1()),
@@ -208,7 +217,7 @@ class AppState with ChangeNotifier {
   //  SEND REQUEST
   void sendRequest(String intendedLocation) async {
     isLoadingPrices = false;
-    await getActualPrices();
+    await _getActualPrices();
     origin = _initialPosition;
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(intendedLocation);
@@ -238,7 +247,7 @@ class AppState with ChangeNotifier {
           .toInt();
     }
     isLoadingPrices = true;
-    createRoute(route);
+    _createRoute(route);
     notifyListeners();
   }
 
@@ -261,12 +270,12 @@ class AppState with ChangeNotifier {
   void changeOrigin(LatLng origen) async {
     origin = origen;
     isLoadingPrices = false;
-    await getActualPrices();
+    await _getActualPrices();
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(destinationController.text);
     String route =
         await _googleMapsServices.getRouteCoordinates(origen, destination);
-    createRoute(route);
+    _createRoute(route);
     distance = await _googleMapsServices.getDistance(origen, destination);
     duration = await _googleMapsServices.getDuration(origen, destination);
     durationValue =
@@ -291,11 +300,11 @@ class AppState with ChangeNotifier {
   void changeDestination(LatLng dest, intendedLocation) async {
     destination = dest;
     isLoadingPrices = false;
-    await getActualPrices();
+    await _getActualPrices();
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(intendedLocation);
     String route = await _googleMapsServices.getRouteCoordinates(origin, dest);
-    createRoute(route);
+    _createRoute(route);
     distance = await _googleMapsServices.getDistance(origin, dest);
     duration = await _googleMapsServices.getDuration(origin, dest);
     durationValue = await _googleMapsServices.getDurationValue(origin, dest);
@@ -316,12 +325,12 @@ class AppState with ChangeNotifier {
   }
 
   // CHECKS IF THE USER HAS PERMISSIONS AND THE LOCATION ACTIVE
-  void hasAlreadyPermissionsAndService() async {
+  void _hasAlreadyPermissionsAndService() async {
     permissionGranted = await location.hasPermission();
     if (permissionGranted == l.PermissionStatus.granted) {
       serviceEnabled = await location.serviceEnabled();
       if (serviceEnabled) {
-        getUserLocation();
+        _getUserLocation();
       } else {
         serviceEnabled = false;
       }
@@ -330,14 +339,11 @@ class AppState with ChangeNotifier {
   }
 
   Future getCarMarker(BuildContext context) async {
-    ByteData byteData =
-        await DefaultAssetBundle.of(context).load("assets/car.png");
-    return byteData.buffer.asUint8List();
+    carMarker = await DefaultAssetBundle.of(context).load("assets/car.png");
+    notifyListeners();
   }
 
-  void updateCarMarker(
-      List cars, AppState appState, BuildContext context) async {
-    Uint8List imageData = await getCarMarker(context);
+  void updateCarMarker(List cars, BuildContext context) async {
     _markers = Set<Marker>();
 
     cars.forEach((car) {
@@ -351,7 +357,7 @@ class AppState with ChangeNotifier {
           zIndex: 2,
           flat: true,
           anchor: Offset(0.5, 0.5),
-          icon: BitmapDescriptor.fromBytes(imageData)));
+          icon: BitmapDescriptor.fromBytes(carMarker.buffer.asUint8List())));
     });
     notifyListeners();
   }
@@ -405,7 +411,7 @@ class AppState with ChangeNotifier {
   }
 
   // READ THE PHONE NUMBER FROM THE FILE
-  Future<String> readPhoneNumber() async {
+  Future<String> _readPhoneNumber() async {
     try {
       final file = await _localFileNumber;
       return await file.readAsString();
@@ -477,7 +483,7 @@ class AppState with ChangeNotifier {
   }
 
   //DOWNLOADS THE IMAGE FROM FIREBASE
-  Future downloadProfilePicture(number) async {
+  Future _downloadProfilePicture(number) async {
     try {
       await Firestore.instance
           .collection('Users')
@@ -500,7 +506,7 @@ class AppState with ChangeNotifier {
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child(phone);
     if (image != null) {
-      _cargandoDialog(context);
+      _showLoadingPhotoDialog(context);
       StorageUploadTask uploadTask = storageReference.putFile(image);
       await uploadTask.onComplete;
       if (uploadTask.isComplete) {
@@ -527,7 +533,7 @@ class AppState with ChangeNotifier {
   }
 
   //SAVES THE IMAGE TO FIREBASE
-  Future saveDriverProfilePicture(BuildContext context, String phone) async {
+  Future _saveDriverProfilePicture(BuildContext context, String phone) async {
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child(phone);
     if (image != null) {
@@ -546,7 +552,7 @@ class AppState with ChangeNotifier {
             .document(phone)
             .updateData({'image': url});
         image = null;
-        await downloadProfilePicture(phone);
+        await _downloadProfilePicture(phone);
       }
     } else {
       await Firestore.instance
@@ -557,7 +563,18 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void _cargandoDialog(context) {
+  void _getDriverData(driver) {
+    driverCarName = driver['carName'];
+    driverCarImage = driver['car'];
+    driverName = driver['name'];
+    driverCarModel = driver['carModel'];
+    driverImage = driver['image'];
+    driverPhone = driver['phone'];
+    driverCarPlates = driver['carPlates'];
+    notifyListeners();
+  }
+
+  void _showLoadingPhotoDialog(context) {
     // flutter defined function
     showDialog(
       barrierDismissible: false,
@@ -645,7 +662,7 @@ class AppState with ChangeNotifier {
   }
 
   // THIS IS FOR THE FLOATING ACTION BUTTON TO GET THE ACTUAL LOCATION
-  void currentLocation() async {
+  void getCurrentLocation() async {
     l.LocationData currentLocation;
     var location = new l.Location();
     try {
@@ -706,8 +723,8 @@ class AppState with ChangeNotifier {
           }
         ]
       });
-      await saveDriverProfilePicture(context, phone);
-      await saveCarPicture(context, phone);
+      await _saveDriverProfilePicture(context, phone);
+      await _saveCarPicture(context, phone);
       //Update state, now the user wants to be a driver
       userWantsToBeDriver = true;
       notifyListeners();
@@ -722,7 +739,7 @@ class AppState with ChangeNotifier {
   }
 
   //SAVES THE IMAGE TO FIREBASE
-  Future saveCarPicture(BuildContext context, String phone) async {
+  Future _saveCarPicture(BuildContext context, String phone) async {
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child("driver" + phone);
     if (carImage != null) {
@@ -739,7 +756,7 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  Future checkIfIsDriver(String driverID) async {
+  Future _checkIfIsDriver(String driverID) async {
     try {
       await Firestore.instance
           .collection('Drivers')
@@ -778,9 +795,60 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void countHack() {
-    hack++;
+  void _hackToRunPopOnce(BuildContext context) {
+    runPopOnceHack++;
+    Navigator.pop(context);
     serviceAccepted = true;
     notifyListeners();
+  }
+
+  Future getDriversCarsPositionAndCheckIfAccepted(
+      AsyncSnapshot<QuerySnapshot> snapshot, BuildContext context) async {
+    // Gets the current position of all the drivers
+    var cars = [];
+    snapshot.data.documents.forEach((DocumentSnapshot driver) {
+      if (driver['currentLocation'] != null && driver['isActive']) {
+        cars.add({
+          'currentLocation': driver['currentLocation'],
+          'currentLocationHeading': driver['currentLocationHeading']
+        });
+      }
+      if (destinationController.text.isEmpty) {
+        updateCarMarker(cars, context);
+      }
+
+      //Checks if the driver accepted the user service
+      if (isAskingService && runPopOnceHack == 0) {
+        if (driver['tripID']['userID'] == phone &&
+            driver['tripID']['accepted']) {
+          _hackToRunPopOnce(context);
+          _getDriverData(driver);
+        }
+      }
+    });
+    notifyListeners();
+  }
+
+  Future cancelService() async {
+    await Firestore.instance
+        .collection('Users')
+        .document(phone)
+        .get()
+        .then((user) async {
+      await Firestore.instance.collection('Users').document(phone).updateData({
+        'tripID': {
+          'isAskingService': false,
+          'driversList': user['tripID']['driversList']
+        }
+      });
+      _resetVariables();
+      notifyListeners();
+    });
+  }
+
+  void _resetVariables() {
+    serviceAccepted = false;
+    isAskingService = false;
+    runPopOnceHack = 0;
   }
 }

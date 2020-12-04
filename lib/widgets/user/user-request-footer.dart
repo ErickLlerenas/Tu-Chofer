@@ -1,18 +1,18 @@
-import 'package:chofer/screens/origin.dart';
+import 'package:chofer/screens/user/change-destination.dart';
+import 'package:chofer/screens/user/change-origin.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chofer/states/app-state.dart';
-import 'package:chofer/screens/destination.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Footer extends StatefulWidget {
+class UserRequestFooter extends StatefulWidget {
   final String driverImage;
   final String driverName;
   final String driverCarImage;
   final String driverCarName;
   final String driverCarPlates;
   final String driverPhone;
-  Footer(
+  UserRequestFooter(
       {this.driverCarImage,
       this.driverCarName,
       this.driverCarPlates,
@@ -20,10 +20,10 @@ class Footer extends StatefulWidget {
       this.driverName,
       this.driverPhone});
   @override
-  _FooterState createState() => _FooterState();
+  _UserRequestFooterState createState() => _UserRequestFooterState();
 }
 
-class _FooterState extends State<Footer> {
+class _UserRequestFooterState extends State<UserRequestFooter> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -40,8 +40,10 @@ class _FooterState extends State<Footer> {
                 children: <Widget>[
                   ListTile(
                     onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Origin()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ChangeOrigin()));
                     },
                     leading: Icon(Icons.location_on, color: Colors.blue[400]),
                     title: Text("Origen"),
@@ -53,7 +55,7 @@ class _FooterState extends State<Footer> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => Destination()));
+                              builder: (context) => ChangeDestination()));
                     },
                     leading: Icon(Icons.location_on, color: Colors.red[400]),
                     title: Text("Destino"),
@@ -156,7 +158,9 @@ class _FooterState extends State<Footer> {
               Firestore.instance
                   .collection('Users')
                   .document('$phone')
-                  .updateData({'isAskingService': false});
+                  .updateData({
+                'tripID': {'isAskingService': false}
+              });
             },
           )),
         );

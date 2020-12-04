@@ -1,52 +1,53 @@
+import 'package:chofer/widgets/user/recomended-search.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:search_map_place/search_map_place.dart';
 
-class Destination extends StatefulWidget {
+class AutoCompleteInput extends StatefulWidget {
   @override
-  _DestinationState createState() => _DestinationState();
+  _AutoCompleteInputState createState() => _AutoCompleteInputState();
 }
 
-class _DestinationState extends State<Destination> {
+class _AutoCompleteInputState extends State<AutoCompleteInput> {
+  GoogleMapController controller;
+  @override
+  void dispose() {
+    super.dispose();
+    controller = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.red[400],
-        title: Row(
-          children: <Widget>[Text('Destino')],
-        ),
-      ),
-      body: Container(
-        margin: EdgeInsets.only(top: 20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+    String firstName = appState.name.split(' ')[0];
+    return Container(
+        margin: EdgeInsets.only(top: 80, left: 20, right: 20),
+        child: Column(
+          children: [
             SingleChildScrollView(
                 child: SearchMapPlaceWidget(
-                  iconColor: Colors.red[400],
+              darkMode: false,
+              iconColor: Colors.grey[700],
               apiKey: "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY",
-              placeholder: "${appState.destinationController.text}",
+              placeholder: "Hola $firstName, ¿A dónde quieres ir?",
               language: 'es',
               location: appState.initialPosition,
-              radius: 30000,
+              radius: 20000,
               onSelected: (Place place) async {
                 final geolocation = await place.geolocation;
-                appState.changeDestination(geolocation.coordinates,place.description);
+                appState.sendRequest(place.description);
                 appState.destinationController.text = place.description;
-                final GoogleMapController controller = appState.mapController;
+                controller = appState.mapController;
                 controller.animateCamera(
                     CameraUpdate.newLatLng(geolocation.coordinates));
                 controller.animateCamera(
                     CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
-                Navigator.pop(context);
               },
             )),
+            RecomendedSearch(phone: appState.phone)
           ],
-        ))
-    );
+        ));
   }
 }

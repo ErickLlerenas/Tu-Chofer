@@ -1,5 +1,5 @@
-import 'package:chofer/components/custom-drawer.dart';
-import 'package:chofer/screens/driver-request-screen1.dart';
+import 'package:chofer/widgets/my-drawer.dart';
+import 'package:chofer/screens/driver/driver-request-screen1.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +20,7 @@ class _DriverRequestPendingState extends State<DriverRequestPending> {
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
-        drawer: CustomDrawer(),
+        drawer: MyDrawer(),
         body: Container(
           padding: EdgeInsets.all(50),
           child: Column(

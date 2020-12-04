@@ -1,15 +1,15 @@
 import 'dart:io';
-import 'package:chofer/components/custom-drawer.dart';
+import 'package:chofer/widgets/my-drawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
-class History extends StatefulWidget {
+class UserHistory extends StatefulWidget {
   @override
-  _HistoryState createState() => _HistoryState();
+  _UserHistoryState createState() => _UserHistoryState();
 }
 
-class _HistoryState extends State<History> {
+class _UserHistoryState extends State<UserHistory> {
   List userHistory = [];
   bool isLoadingHistory = true;
 
@@ -74,7 +74,7 @@ class _HistoryState extends State<History> {
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
-        drawer: CustomDrawer(),
+        drawer: MyDrawer(),
         body: isLoadingHistory
             ? Center(
                 child: CircularProgressIndicator(
