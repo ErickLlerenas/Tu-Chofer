@@ -9,9 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^0.13.6         #Requires Android and iOS configuration and Firebase
-  firebase_auth: ^0.15.5+3         #Requires Android and iOS configuration and Firebase
-  google_maps_flutter: ^0.5.26+3   #Requires Android and iOS configuration
+  cloud_firestore: ^0.13.6         #Requires Android and iOS configuration and Firebase (Just dowload the json files)
+  firebase_auth: ^0.15.5+3         #Requires Android configuration and firebase
+  google_maps_flutter: ^0.5.26+3   #Requires Android and iOS configuration (iOS: io.flutter.embedded_views_preview YES)
   rxdart: any                      #Doesn't require configuration
   location: ^3.0.2                 #Requires Android configuration
   google_maps_webservice: ^0.0.17  #Doesn't require configuration

@@ -182,8 +182,6 @@ class _DriverMapState extends State<DriverMap> {
                         appState.phone) {
                       userIsAskingService = user['tripID']['isAskingService'];
                       if (userIsAskingService) {
-                        print(
-                            "NORMAN XXDDXD ${user['tripID']['driversList'][0]['driver']}");
                         originName = user['originName'];
                         destinationName = user['destinationName'];
                         distance = user['distance'];
