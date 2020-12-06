@@ -90,11 +90,11 @@ class AppState with ChangeNotifier {
 
   AppState() {
     _hasAlreadyPermissionsAndService();
-    _getPhoneNumber();
-    _getUserName();
+    getPhoneNumber();
+    getUserName();
   }
   // GETS THE USER PHONE NUMBER
-  Future _getPhoneNumber() async {
+  Future getPhoneNumber() async {
     _phone = await _readPhoneNumber();
     if (_phone.isNotEmpty) {
       _downloadProfilePicture(_phone);
@@ -104,7 +104,7 @@ class AppState with ChangeNotifier {
   }
 
   //GETS THE USER NAME
-  Future _getUserName() async {
+  Future getUserName() async {
     _name = await readName();
     tempName = _name;
     notifyListeners();
@@ -125,7 +125,7 @@ class AppState with ChangeNotifier {
   }
 
   //  TO GET THE USERS LOCATION
-  void _getUserLocation() async {
+  void getUserLocation() async {
     try {
       Position position = await Geolocator()
           .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
@@ -145,7 +145,7 @@ class AppState with ChangeNotifier {
           placemark[0].country;
     } catch (error) {
       print(error);
-      _getUserLocation();
+      getUserLocation();
     }
     notifyListeners();
   }
@@ -330,7 +330,7 @@ class AppState with ChangeNotifier {
     if (permissionGranted == l.PermissionStatus.granted) {
       serviceEnabled = await location.serviceEnabled();
       if (serviceEnabled) {
-        _getUserLocation();
+        getUserLocation();
       } else {
         serviceEnabled = false;
       }

@@ -178,16 +178,18 @@ class _DriverMapState extends State<DriverMap> {
               if (driverIsActive) {
                 snapshot.data.documents.forEach((DocumentSnapshot user) {
                   if (user['tripID'] != null) {
-                    if (user['tripID']['driversList'][0]['driver'] ==
-                        appState.phone) {
-                      userIsAskingService = user['tripID']['isAskingService'];
-                      if (userIsAskingService) {
-                        originName = user['originName'];
-                        destinationName = user['destinationName'];
-                        distance = user['distance'];
-                        price = double.parse(user['price'].toString());
-                        userPhone = user['phone'];
-                        duration = user['duration'];
+                    if (user['tripID']['driversList'][0]['driver'] != null) {
+                      if (user['tripID']['driversList'][0]['driver'] ==
+                          appState.phone) {
+                        userIsAskingService = user['tripID']['isAskingService'];
+                        if (userIsAskingService) {
+                          originName = user['originName'];
+                          destinationName = user['destinationName'];
+                          distance = user['distance'];
+                          price = double.parse(user['price'].toString());
+                          userPhone = user['phone'];
+                          duration = user['duration'];
+                        }
                       }
                     }
                   }
