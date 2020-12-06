@@ -65,7 +65,6 @@ class LoginState with ChangeNotifier {
         timeout: const Duration(seconds: 60),
         verificationCompleted: (AuthCredential credential) async {
           AuthResult result = await auth.signInWithCredential(credential);
-          print("AUTOMATICALLY LOGED IN");
           if (result.user != null) {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => EnableLocation()));
@@ -85,7 +84,6 @@ class LoginState with ChangeNotifier {
           }
         },
         verificationFailed: (AuthException exception) {
-          print("FAILED: ${exception.message}");
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => Login()));
         },

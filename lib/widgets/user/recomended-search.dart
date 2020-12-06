@@ -20,11 +20,13 @@ class _RecomendedSearchState extends State<RecomendedSearch> {
         .get()
         .then((user) {
       if (user['history'] != null) {
-        setState(() {
-          recomended = user['history'][(user['history'].length - 1)]
-                  ['destination']
-              .toString();
-        });
+        if (user['history'].length != 0) {
+          setState(() {
+            recomended = user['history'][(user['history'].length - 1)]
+                    ['destination']
+                .toString();
+          });
+        }
       }
     });
     super.initState();

@@ -137,10 +137,7 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
                   .collection('Users')
                   .document('$phone')
                   .updateData({
-                'tripID': {
-                  'isAskingService': false,
-                  'driversList': sortedDriversList
-                }
+                'tripID': {'isAskingService': false, 'driversList': []}
               });
             },
           )),
