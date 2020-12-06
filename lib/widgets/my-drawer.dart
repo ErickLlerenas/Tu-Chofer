@@ -131,6 +131,8 @@ class MyDrawer extends StatelessWidget {
                   trailing: Icon(Icons.navigate_next, color: Colors.orange),
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.pop(context);
+
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => DriverMap()));
                   },

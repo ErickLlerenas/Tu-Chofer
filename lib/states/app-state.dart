@@ -145,7 +145,7 @@ class AppState with ChangeNotifier {
           placemark[0].country;
     } catch (error) {
       print(error);
-      getUserLocation();
+      // getUserLocation();
     }
     notifyListeners();
   }
@@ -326,14 +326,18 @@ class AppState with ChangeNotifier {
 
   // CHECKS IF THE USER HAS PERMISSIONS AND THE LOCATION ACTIVE
   void _hasAlreadyPermissionsAndService() async {
+    print("_hasAlreadyPermissionsAndService");
     permissionGranted = await location.hasPermission();
     if (permissionGranted == l.PermissionStatus.granted) {
       serviceEnabled = await location.serviceEnabled();
+      print(serviceEnabled);
       if (serviceEnabled) {
         getUserLocation();
       } else {
         serviceEnabled = false;
       }
+    } else {
+      serviceEnabled = false;
     }
     notifyListeners();
   }

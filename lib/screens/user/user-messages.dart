@@ -10,13 +10,21 @@ class UserMessages extends StatefulWidget {
 }
 
 class _UserMessagesState extends State<UserMessages> {
-  ScrollController _userScrollController = new ScrollController();
+  ScrollController _userScrollController = ScrollController();
   TextEditingController _messageController = TextEditingController();
+
+  @override
+  void initState() {
+    if (_userScrollController.hasClients)
+      _userScrollController.animateTo(0.0,
+          curve: Curves.easeOut, duration: const Duration(milliseconds: 300));
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    _userScrollController.animateTo(0.0,
-        curve: Curves.easeOut, duration: const Duration(milliseconds: 300));
+
     return Scaffold(
         backgroundColor: Colors.grey[100],
         appBar: AppBar(

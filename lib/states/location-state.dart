@@ -35,6 +35,7 @@ class LocationState with ChangeNotifier {
     _permissionGranted = await location.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
       _permissionGranted = await location.requestPermission();
+      print(_permissionGranted);
       if (_permissionGranted != PermissionStatus.granted) {
         return;
       }

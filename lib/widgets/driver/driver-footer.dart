@@ -12,13 +12,15 @@ class DriverFooter extends StatefulWidget {
   final String distance;
   final String duration;
   final String phone;
+  final Function acceptService;
   DriverFooter(
       {this.origin,
       this.destination,
       this.price,
       this.distance,
       this.duration,
-      this.phone});
+      this.phone,
+      this.acceptService});
   @override
   _DriverFooterState createState() => _DriverFooterState();
 }
@@ -152,6 +154,7 @@ class _DriverFooterState extends State<DriverFooter> {
                             stopSound();
                             setState(() {
                               _time = 0;
+                              widget.acceptService();
                             });
                             Firestore.instance
                                 .collection('Drivers')
