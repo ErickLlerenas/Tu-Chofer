@@ -16,6 +16,15 @@ class UserMap extends StatefulWidget {
 
 class _UserMapState extends State<UserMap> {
   @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () async {
+      Provider.of<AppState>(context).getCarMarker(context);
+      Provider.of<AppState>(context).getDataIfUserExitsTheApp();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return appState.initialPosition == null
@@ -43,8 +52,7 @@ class _UserMapState extends State<UserMap> {
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (!snapshot.hasData) return Container();
 
-              appState.getDriversCarsPositionAndCheckIfAccepted(
-                  snapshot, context);
+              appState.handleStream(snapshot, context);
 
               return Stack(children: <Widget>[
                 GoogleMap(
@@ -59,7 +67,8 @@ class _UserMapState extends State<UserMap> {
                     zoomControlsEnabled: false,
                     polylines: appState.polyLines,
                     markers: appState.markers),
-                appState.destinationController.text.isEmpty
+                appState.destinationController.text.isEmpty &&
+                        !appState.serviceAccepted
                     ? AutoCompleteInput()
                     : !appState.serviceAccepted
                         ? UserRequestFooter()

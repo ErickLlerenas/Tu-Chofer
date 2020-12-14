@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:chofer/widgets/driver/driver-footer.dart';
+import 'package:chofer/widgets/driver/driver-accepted-footer.dart';
+import 'package:chofer/widgets/driver/driver-request-footer.dart';
+import 'package:chofer/widgets/driver/driver-started-footer.dart';
 import 'package:chofer/widgets/my-drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 class DriverMap extends StatefulWidget {
@@ -22,23 +25,51 @@ class _DriverMapState extends State<DriverMap> {
   bool driverIsActive = false;
   bool driverIsOnDriverScreen = true;
   bool driverAcceptedService = false;
+  bool driverStartedService = false;
+  bool driverFinishedService = false;
+  String userPhone;
   Location _location = new Location();
   StreamSubscription locationSubscription;
   Marker _marker;
+  Circle _circle;
   GoogleMapController _mapController;
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String originName;
   String destinationName;
-  double price;
+  int price;
   String distance;
   String duration;
-  String userPhone;
-  bool userIsAskingService = false;
+  String userName;
+  LatLng userOrigin;
   ByteData byteData;
+  String driverPhone;
+  bool userIsAskingService = false;
+  bool driverIsInsideCircle = false;
 
-  void acceptService() {
+  void acceptService() async {
+    driverAcceptedService = true;
+    await Firestore.instance
+        .collection('Drivers')
+        .document(driverPhone)
+        .updateData({
+      'tripID': {
+        'userID': userPhone,
+        'serviceAccepted': true,
+        'serviceStarted': false,
+        'serviceFinished': false
+      }
+    });
+  }
+
+  void disposeUserService() {
     setState(() {
-      driverAcceptedService = true;
+      userIsAskingService = false;
+    });
+  }
+
+  void startService() {
+    setState(() {
+      driverStartedService = true;
     });
   }
 
@@ -46,9 +77,22 @@ class _DriverMapState extends State<DriverMap> {
     byteData = await DefaultAssetBundle.of(context).load("assets/car.png");
   }
 
+  void checkIfDriverIsInsideCircle(latlng) {
+    if (userOrigin != null) {
+      if ((latlng.latitude.abs() - userOrigin.latitude.abs()).abs() < 0.0014 &&
+          (latlng.longitude.abs() - userOrigin.longitude.abs()).abs() <
+              0.0014) {
+        driverIsInsideCircle = true;
+      } else {
+        driverIsInsideCircle = false;
+      }
+    }
+  }
+
   void updateCarMarker(LocationData newLocalData, Uint8List imageData) async {
-    print("UPDATECARMARKER");
     LatLng latlng = LatLng(newLocalData.latitude, newLocalData.longitude);
+    checkIfDriverIsInsideCircle(latlng);
+
     await Firestore.instance
         .collection('Drivers')
         .document(await readPhoneNumber())
@@ -71,7 +115,9 @@ class _DriverMapState extends State<DriverMap> {
   }
 
   void clearCar() {
-    _marker = null;
+    setState(() {
+      _marker = null;
+    });
   }
 
   void getCurrentLocation() async {
@@ -94,7 +140,7 @@ class _DriverMapState extends State<DriverMap> {
                   new CameraPosition(
                       bearing: 0,
                       tilt: 0,
-                      zoom: 16.5,
+                      zoom: 16,
                       target: LatLng(
                           newLocalData.latitude, newLocalData.longitude))));
               updateCarMarker(newLocalData, imageData);
@@ -112,6 +158,17 @@ class _DriverMapState extends State<DriverMap> {
     _mapController.setMapStyle(_mapStyle);
   }
 
+  Future getDriverPhoneNumber() async {
+    driverPhone = await readPhoneNumber();
+  }
+
+  void driverCancelService() {
+    driverAcceptedService = false;
+    userIsAskingService = false;
+    userPhone = '';
+    _circle = null;
+  }
+
   @override
   void dispose() {
     if (locationSubscription != null) {
@@ -124,7 +181,8 @@ class _DriverMapState extends State<DriverMap> {
   @override
   void initState() {
     getMarker();
-    checkIfDriverIsActive();
+    getDriverPhoneNumber();
+    checkDriverData();
     super.initState();
   }
 
@@ -152,28 +210,89 @@ class _DriverMapState extends State<DriverMap> {
     }
   }
 
-  Future checkIfDriverIsActive() async {
+  Future checkDriverData() async {
+    print(await readPhoneNumber());
     await Firestore.instance
         .collection('Drivers')
         .document(await readPhoneNumber())
         .get()
-        .then((value) {
+        .then((driver) {
       setState(() {
-        driverIsActive = value.data['isActive'];
+        driverIsActive = driver['isActive'];
         if (driverIsActive) {
           getCurrentLocation();
         }
+        if (driver.data['tripID'] != null) {
+          driverAcceptedService = driver['tripID']['serviceAccepted'];
+          driverStartedService = driver['tripID']['serviceStarted'];
+          driverFinishedService = driver['tripID']['serviceFinished'];
+          userPhone = driver['tripID']['userID'];
+          if (driverFinishedService) _circle = null;
+        }
       });
     });
+    if (userPhone.isNotEmpty) {
+      await Firestore.instance
+          .collection('Users')
+          .document(userPhone)
+          .get()
+          .then((user) {
+        originName = user['trip']['originName'];
+        destinationName = user['trip']['destinationName'];
+        distance = user['trip']['distance'];
+        price = int.parse(user['trip']['price'].toString());
+        userPhone = user['phone'];
+        duration = user['trip']['duration'];
+        userName = user['name'];
+        if (!driverFinishedService) {
+          _addCircle(user['trip']['origin'].latitude,
+              user['trip']['origin'].longitude);
+        }
+      });
+    }
   }
 
-  void setUserData(user) {
-    originName = user['originName'];
-    destinationName = user['destinationName'];
-    distance = user['distance'];
-    price = double.parse(user['price'].toString());
+  void _setUserData(dynamic user) {
+    originName = user['trip']['originName'];
+    destinationName = user['trip']['destinationName'];
+    distance = user['trip']['distance'];
+    price = int.parse(user['trip']['price'].toString());
     userPhone = user['phone'];
-    duration = user['duration'];
+    duration = user['trip']['duration'];
+    userName = user['name'];
+  }
+
+  Future _handleUsers(dynamic user, AppState appState) async {
+    if (user['tripID'] != null) {
+      if (user['tripID']['isAskingService']) {
+        if (user['tripID']['driversList'].length != 0) {
+          if (user['tripID']['driversList'][0]['driver'] == appState.phone) {
+            userIsAskingService = true;
+            print(userIsAskingService);
+            if (user['trip'] != null) {
+              _setUserData(user);
+              _addCircle(user['trip']['origin'].latitude,
+                  user['trip']['origin'].longitude);
+            }
+          }
+        }
+      }
+      if (user['phone'] == userPhone) {
+        userIsAskingService = user['tripID']['isAskingService'];
+      }
+    }
+  }
+
+  void _addCircle(latitude, longitude) {
+    if (!driverFinishedService) {
+      userOrigin = LatLng(latitude, longitude);
+      _circle = Circle(
+          circleId: CircleId(Uuid().v1()),
+          center: userOrigin,
+          radius: 150,
+          strokeWidth: 3,
+          strokeColor: Colors.orange);
+    }
   }
 
   @override
@@ -181,6 +300,21 @@ class _DriverMapState extends State<DriverMap> {
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+        floatingActionButton: driverAcceptedService
+            ? Container(
+                margin: EdgeInsets.only(top: 10),
+                child: FloatingActionButton(
+                  backgroundColor: Colors.green,
+                  child: Icon(Icons.phone),
+                  onPressed: () async {
+                    if (await canLaunch("tel: $userPhone")) {
+                      await launch("tel: $userPhone");
+                    }
+                  },
+                ),
+              )
+            : Container(),
         key: _scaffoldKey,
         drawer: MyDrawer(),
         body: StreamBuilder(
@@ -190,29 +324,8 @@ class _DriverMapState extends State<DriverMap> {
               if (!snapshot.hasData) return Container();
 
               if (driverIsActive) {
-                snapshot.data.documents.forEach((DocumentSnapshot user) async {
-                  if (user['tripID'] != null) {
-                    if (user['tripID']['driversList'].length != 0) {
-                      if (user['tripID']['driversList'][0]['driver'] ==
-                          appState.phone) {
-                        userIsAskingService = user['tripID']['isAskingService'];
-
-                        if (userIsAskingService) {
-                          setUserData(user);
-                        } else {
-                          driverAcceptedService = false;
-                          await Firestore.instance
-                              .collection('Drivers')
-                              .document(appState.phone)
-                              .updateData({
-                            'tripID': {'accepted': false, 'userID': ''}
-                          });
-                        }
-                      }
-                    } else {
-                      userIsAskingService = false;
-                    }
-                  }
+                snapshot.data.documents.forEach((DocumentSnapshot user) {
+                  _handleUsers(user, appState);
                 });
               }
               return Stack(children: <Widget>[
@@ -228,17 +341,8 @@ class _DriverMapState extends State<DriverMap> {
                   myLocationButtonEnabled: false,
                   zoomControlsEnabled: false,
                   markers: Set.of((_marker != null ? [_marker] : [])),
+                  circles: Set.of((_circle != null ? [_circle] : [])),
                 ),
-                driverIsActive && userIsAskingService
-                    ? DriverFooter(
-                        origin: originName,
-                        destination: destinationName,
-                        price: price,
-                        distance: distance,
-                        duration: duration,
-                        phone: userPhone,
-                        acceptService: acceptService)
-                    : Container(),
                 Positioned(
                   left: 8,
                   top: 25,
@@ -247,48 +351,84 @@ class _DriverMapState extends State<DriverMap> {
                     onPressed: () => _scaffoldKey.currentState.openDrawer(),
                   ),
                 ),
-                DraggableScrollableSheet(
-                    expand: true,
-                    maxChildSize: 0.125,
-                    initialChildSize: 0.125,
-                    minChildSize: 0.125,
-                    builder: (context, controller) {
-                      return InkWell(
-                          onTap: () async {
-                            setState(() {
-                              driverIsActive = !driverIsActive;
-                            });
-                            await Firestore.instance
-                                .collection('Drivers')
-                                .document(appState.phone)
-                                .updateData({'isActive': driverIsActive});
+                driverIsActive &&
+                        driverAcceptedService &&
+                        !driverStartedService &&
+                        !driverFinishedService
+                    ? DriverAcceptedFooter(
+                        destination: destinationName,
+                        distance: distance,
+                        duration: duration,
+                        origin: originName,
+                        price: price,
+                        driverPhone: driverPhone,
+                        driverCancelService: driverCancelService,
+                        driverIsInsideCircle: driverIsInsideCircle,
+                        userName: userName,
+                        userPhone: userPhone,
+                        userIsAskingService: userIsAskingService,
+                        startService: startService)
+                    : driverIsActive &&
+                            driverAcceptedService &&
+                            driverStartedService
+                        ? DriverStartedFooter(
+                            destination: destinationName,
+                            distance: distance,
+                            driverPhone: driverPhone,
+                            duration: duration,
+                            origin: originName,
+                            price: price,
+                            userName: userName,
+                            userPhone: userPhone)
+                        : DraggableScrollableSheet(
+                            expand: true,
+                            maxChildSize: 0.1,
+                            initialChildSize: 0.1,
+                            minChildSize: 0.1,
+                            builder: (context, controller) {
+                              return InkWell(
+                                  onTap: () async {
+                                    setState(() {
+                                      driverIsActive = !driverIsActive;
+                                    });
+                                    await Firestore.instance
+                                        .collection('Drivers')
+                                        .document(appState.phone)
+                                        .updateData(
+                                            {'isActive': driverIsActive});
 
-                            driverIsActive ? getCurrentLocation() : clearCar();
-                          },
-                          child: Container(
-                              color: Colors.black,
-                              child: ListView(
-                                children: <Widget>[
-                                  driverAcceptedService
-                                      ? Text('Servicio aceptado.',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold))
-                                      : Text(
-                                          !driverIsActive
-                                              ? 'Estás desconectado'
-                                              : 'Conectado. Buscando viajes ...',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                ],
-                              )));
-                    })
+                                    driverIsActive
+                                        ? getCurrentLocation()
+                                        : clearCar();
+                                  },
+                                  child: Container(
+                                      color: Colors.black,
+                                      child: ListView(
+                                        children: <Widget>[
+                                          Text(
+                                            !driverIsActive
+                                                ? 'Estás desconectado'
+                                                : 'Conectado. Buscando viajes ...',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      )));
+                            }),
+                driverIsActive && userIsAskingService && !driverAcceptedService
+                    ? DriverRequestFooter(
+                        origin: originName,
+                        destination: destinationName,
+                        price: price,
+                        distance: distance,
+                        duration: duration,
+                        phone: userPhone,
+                        acceptService: acceptService,
+                        disposeUserService: disposeUserService)
+                    : Container(),
               ]);
             }));
   }

@@ -1,5 +1,6 @@
 import 'package:chofer/screens/user/driver-car-info.dart';
 import 'package:chofer/screens/user/driver-info.dart';
+import 'package:chofer/screens/user/user-history.dart';
 import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,24 +16,29 @@ class _UserAcceptedFooterState extends State<UserAcceptedFooter> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return DraggableScrollableSheet(
-        expand: true,
-        maxChildSize: 0.4,
-        initialChildSize: 0.4,
-        minChildSize: 0.4,
-        builder: (context, controller) {
+        initialChildSize: 0.45,
+        minChildSize: 0.12,
+        maxChildSize: 0.45,
+        builder: (BuildContext context, controller) {
           return Container(
               color: Colors.white,
               child: ListView(
+                controller: controller,
                 children: <Widget>[
+                  Icon(Icons.drag_handle, color: Colors.grey[800]),
                   Text(
-                    "Tu Chofer está en camino..",
+                    !appState.serviceStarted
+                        ? "Tu Chofer está en camino.."
+                        : appState.serviceFinished
+                            ? "Servicio finalizado"
+                            : "Servicio iniciado",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.grey[800],
                         fontSize: 20,
                         fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 30),
                   ListTile(
                     onTap: () {
                       Navigator.push(
@@ -52,6 +58,7 @@ class _UserAcceptedFooterState extends State<UserAcceptedFooter> {
                           loadingBuilder: (BuildContext context, Widget child,
                               ImageChunkEvent loadingProgress) {
                         if (loadingProgress == null) return child;
+
                         return CircularProgressIndicator(
                           valueColor:
                               new AlwaysStoppedAnimation<Color>(Colors.orange),
@@ -97,21 +104,45 @@ class _UserAcceptedFooterState extends State<UserAcceptedFooter> {
                   ),
                   SizedBox(height: 20),
                   ListTile(
-                    subtitle: ButtonTheme(
-                      height: 45,
-                      minWidth: 100,
-                      child: FlatButton(
-                        color: Colors.red[800],
-                        child: Text(
-                          'Cancelar servicio',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () {
-                          // appState.cancelService();
-                          _showCancelServiceDialog(appState);
-                        },
-                      ),
-                    ),
+                    subtitle: !appState.serviceStarted
+                        ? ButtonTheme(
+                            height: 45,
+                            minWidth: 100,
+                            child: FlatButton(
+                              color: Colors.red[800],
+                              child: Text(
+                                'Cancelar servicio',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: () {
+                                _showCancelServiceDialog(appState);
+                              },
+                            ),
+                          )
+                        : appState.serviceFinished
+                            ? ButtonTheme(
+                                height: 45,
+                                minWidth: 100,
+                                child: FlatButton(
+                                  color: Colors.orange,
+                                  child: Text(
+                                    'Realizar pago',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                UserHistory()));
+                                    //canceling the service because is the same as if I implement a finish service
+                                    appState.cancelService();
+                                  },
+                                ),
+                              )
+                            : Container(),
                   )
                 ],
               ));

@@ -110,7 +110,6 @@ class LoginState with ChangeNotifier {
       if (!user.exists) {
         await Firestore.instance.collection('Users').document(id).setData({
           'name': name,
-          'isAskingService': false,
           'phone': id,
           'history': [],
           'messages': [

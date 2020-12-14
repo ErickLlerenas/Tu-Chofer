@@ -1,31 +1,30 @@
 import 'dart:async';
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:chofer/states/app-state.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
 
-class DriverFooter extends StatefulWidget {
+class DriverRequestFooter extends StatefulWidget {
   final String origin;
   final String destination;
-  final double price;
+  final int price;
   final String distance;
   final String duration;
   final String phone;
   final Function acceptService;
-  DriverFooter(
+  final Function disposeUserService;
+  DriverRequestFooter(
       {this.origin,
       this.destination,
       this.price,
       this.distance,
       this.duration,
       this.phone,
-      this.acceptService});
+      this.acceptService,
+      this.disposeUserService});
   @override
-  _DriverFooterState createState() => _DriverFooterState();
+  _DriverRequestFooterState createState() => _DriverRequestFooterState();
 }
 
-class _DriverFooterState extends State<DriverFooter> {
+class _DriverRequestFooterState extends State<DriverRequestFooter> {
   Timer _timer;
   int _time = 10;
   final assetsAudioPlayer = AssetsAudioPlayer();
@@ -60,6 +59,7 @@ class _DriverFooterState extends State<DriverFooter> {
         () {
           if (_time < 1) {
             timer.cancel();
+            widget.disposeUserService();
           } else {
             _time = _time - 1;
           }
@@ -70,15 +70,12 @@ class _DriverFooterState extends State<DriverFooter> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-
     return _time == 0
         ? Container()
         : DraggableScrollableSheet(
-            expand: true,
-            maxChildSize: 0.8,
-            initialChildSize: 0.8,
-            minChildSize: 0.8,
+            maxChildSize: 0.7,
+            initialChildSize: 0.7,
+            minChildSize: 0.7,
             builder: (context, controller) {
               return Container(
                   color: Colors.white,
@@ -117,7 +114,7 @@ class _DriverFooterState extends State<DriverFooter> {
                           Icons.attach_money,
                           color: Colors.teal[400],
                         ),
-                        title: Text("Ganancia"),
+                        title: Text("Costo"),
                         subtitle: Text(
                           "\$${widget.price} pesos",
                         ),
@@ -125,16 +122,16 @@ class _DriverFooterState extends State<DriverFooter> {
                       ListTile(
                           leading: Icon(
                             Icons.local_taxi,
-                            color: Colors.grey[700],
+                            color: Colors.orange,
                           ),
                           title: Text("Distancia"),
                           subtitle: Text(
-                            "${widget.duration}",
+                            "${widget.distance}",
                           )),
                       ListTile(
                         leading: Icon(
                           Icons.timer,
-                          color: Colors.grey[700],
+                          color: Colors.pink,
                         ),
                         title: Text("Duración"),
                         subtitle: Text(
@@ -155,15 +152,6 @@ class _DriverFooterState extends State<DriverFooter> {
                             setState(() {
                               _time = 0;
                               widget.acceptService();
-                            });
-                            Firestore.instance
-                                .collection('Drivers')
-                                .document('${appState.phone}')
-                                .updateData({
-                              'tripID': {
-                                'userID': widget.phone,
-                                'accepted': true
-                              }
                             });
                           },
                         ),

@@ -10,27 +10,22 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  int carsMakerHackToRunOnce = 0;
-
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    //This loads the car image marker only once. Other wise the app starts lagging
-    if (carsMakerHackToRunOnce == 0) appState.getCarMarker(context);
-    carsMakerHackToRunOnce++;
-
     return Scaffold(
-        floatingActionButton: appState.destination != null
-            ? Container()
-            : FloatingActionButton(
-                onPressed: () {
-                  appState.getCurrentLocation();
-                },
-                backgroundColor: Colors.white,
-                child: Icon(Icons.my_location, color: Colors.grey[700])),
+        floatingActionButton:
+            appState.destination != null || appState.initialPosition == null
+                ? Container()
+                : FloatingActionButton(
+                    onPressed: () {
+                      appState.getCurrentLocation();
+                    },
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.my_location, color: Colors.grey[700])),
         key: scaffoldKey,
         drawer: MyDrawer(),
         body: UserMap(scaffoldKey));

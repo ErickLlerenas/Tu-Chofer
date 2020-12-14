@@ -55,6 +55,8 @@ class AppState with ChangeNotifier {
   bool userIsDriver = false;
   bool isAskingService = false;
   bool serviceAccepted = false;
+  bool serviceStarted = false;
+  bool serviceFinished = false;
   File image;
   File carImage;
   String downloadURL = "";
@@ -143,10 +145,7 @@ class AppState with ChangeNotifier {
           placemark[0].administrativeArea +
           ", " +
           placemark[0].country;
-    } catch (error) {
-      print(error);
-      // getUserLocation();
-    }
+    } catch (error) {}
     notifyListeners();
   }
 
@@ -208,8 +207,6 @@ class AppState with ChangeNotifier {
     } while (index < len);
 
     for (var i = 2; i < lList.length; i++) lList[i] += lList[i - 2];
-
-    print(lList.toString());
 
     return lList;
   }
@@ -326,11 +323,9 @@ class AppState with ChangeNotifier {
 
   // CHECKS IF THE USER HAS PERMISSIONS AND THE LOCATION ACTIVE
   void _hasAlreadyPermissionsAndService() async {
-    print("_hasAlreadyPermissionsAndService");
     permissionGranted = await location.hasPermission();
     if (permissionGranted == l.PermissionStatus.granted) {
       serviceEnabled = await location.serviceEnabled();
-      print(serviceEnabled);
       if (serviceEnabled) {
         getUserLocation();
       } else {
@@ -567,7 +562,7 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void _getDriverData(driver) {
+  void _getDriverData(driver, BuildContext context) {
     driverCarName = driver['carName'];
     driverCarImage = driver['car'];
     driverName = driver['name'];
@@ -575,6 +570,11 @@ class AppState with ChangeNotifier {
     driverImage = driver['image'];
     driverPhone = driver['phone'];
     driverCarPlates = driver['carPlates'];
+    if (driver['tripID'] != null) {
+      serviceStarted = driver['tripID']['serviceStarted'];
+      serviceFinished = driver['tripID']['serviceFinished'];
+      serviceAccepted = driver['tripID']['serviceAccepted'];
+    }
     notifyListeners();
   }
 
@@ -710,22 +710,28 @@ class AppState with ChangeNotifier {
           .updateData({'name': name});
 
       await Firestore.instance.collection('Drivers').document(id).setData({
-        'name': name,
         'address': _address,
         'carName': carName,
         'carModel': carModel,
-        'isAccepted': false,
-        'isActive': false,
-        'phone': phone,
         'carPlates': carPlates,
         'history': [],
+        'isAccepted': false,
+        'isActive': false,
+        'name': name,
+        'phone': phone,
         'messages': [
           {
             'name': 'Tu Chofer',
             'message':
                 'Hola ${name.split(' ')[0]}, aquí podrás chatear con nosotros y nosotros comunicarnos contigo'
           }
-        ]
+        ],
+        'tripID': {
+          'serviceAccepted': false,
+          'serviceFinished': false,
+          'serviceStarted': false,
+          'userID': ''
+        }
       });
       await _saveDriverProfilePicture(context, phone);
       await _saveCarPicture(context, phone);
@@ -735,11 +741,7 @@ class AppState with ChangeNotifier {
       Navigator.pop(context);
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => DriverRequestPending()));
-    } catch (error) {
-      print("ERROR: " + error);
-      saveDriverDataRequest(
-          id, name, _address, carName, carModel, carPlates, context);
-    }
+    } catch (error) {}
   }
 
   //SAVES THE IMAGE TO FIREBASE
@@ -794,65 +796,138 @@ class AppState with ChangeNotifier {
     } catch (e) {}
   }
 
-  void userIsAskingService() {
-    isAskingService = true;
+  void userIsAskingService(bool isAsking) {
+    isAskingService = isAsking;
     notifyListeners();
   }
 
-  void _hackToRunPopOnce(BuildContext context) {
+  void _hackToRunPopOnce(BuildContext context) async {
     runPopOnceHack++;
-    Navigator.pop(context);
+    Navigator.of(context).maybePop();
     serviceAccepted = true;
+    await Firestore.instance.collection('Users').document(phone).updateData({
+      'tripID': {'isAskingService': true, 'driversList': []}
+    });
     notifyListeners();
   }
 
-  Future getDriversCarsPositionAndCheckIfAccepted(
+  Future _getDriversCarsPositionAndCheckIfAccepted(
       AsyncSnapshot<QuerySnapshot> snapshot, BuildContext context) async {
     // Gets the current position of all the drivers
     var cars = [];
     snapshot.data.documents.forEach((DocumentSnapshot driver) {
-      if (driver['currentLocation'] != null && driver['isActive']) {
-        cars.add({
-          'currentLocation': driver['currentLocation'],
-          'currentLocationHeading': driver['currentLocationHeading']
-        });
-      }
-      if (destinationController.text.isEmpty) {
-        updateCarMarker(cars, context);
+      if (!isAskingService) {
+        if (driver['currentLocation'] != null && driver['isActive']) {
+          cars.add({
+            'currentLocation': driver['currentLocation'],
+            'currentLocationHeading': driver['currentLocationHeading']
+          });
+        }
+        if (destinationController.text.isEmpty) {
+          updateCarMarker(cars, context);
+        }
       }
 
       //Checks if the driver accepted the user service
-      if (isAskingService && runPopOnceHack == 0) {
+      if (isAskingService) {
         if (driver['tripID']['userID'] == phone &&
-            driver['tripID']['accepted']) {
-          _hackToRunPopOnce(context);
-          _getDriverData(driver);
+            driver['tripID']['serviceAccepted']) {
+          if (runPopOnceHack == 0) {
+            _hackToRunPopOnce(context);
+          }
+          _getDriverData(driver, context);
         }
       }
     });
+
     notifyListeners();
   }
 
   Future cancelService() async {
-    await Firestore.instance
-        .collection('Users')
-        .document(phone)
-        .get()
-        .then((user) async {
-      await Firestore.instance.collection('Users').document(phone).updateData({
-        'tripID': {
-          'isAskingService': false,
-          'driversList': user['tripID']['driversList']
-        }
-      });
-      _resetVariables();
-      notifyListeners();
+    await Firestore.instance.collection('Users').document(phone).updateData({
+      'tripID': {'isAskingService': false, 'driversList': []}
     });
+    _resetVariables();
+    notifyListeners();
   }
 
   void _resetVariables() {
     serviceAccepted = false;
+    serviceFinished = false;
+    serviceStarted = false;
     isAskingService = false;
     runPopOnceHack = 0;
+  }
+
+  void _getDriverPositionWhenUserIsAccepted(snapshot, BuildContext context) {
+    var cars = [];
+    snapshot.data.documents.forEach((DocumentSnapshot driver) {
+      if (driver['currentLocation'] != null && driver['isActive']) {
+        if (driver['phone'] == driverPhone) {
+          cars.add({
+            'currentLocation': driver['currentLocation'],
+            'currentLocationHeading': driver['currentLocationHeading']
+          });
+        }
+      }
+      if (destination != null && destinationController.text.isNotEmpty) {
+        _addMarker(destination, destinationController.text);
+        updateDriverCarMarker(cars, context);
+      }
+    });
+  }
+
+  void updateDriverCarMarker(List cars, BuildContext context) async {
+    if (isAskingService) {
+      //if user is asking service it will display the red dot and the driver on the map
+      cars.forEach((car) {
+        LatLng latlng = LatLng(
+            car['currentLocation'].latitude, car['currentLocation'].longitude);
+
+        _markers.add(Marker(
+            markerId: MarkerId(Uuid().v1()),
+            position: latlng,
+            rotation: car['currentLocationHeading'].toDouble(),
+            draggable: false,
+            zIndex: 2,
+            flat: true,
+            anchor: Offset(0.5, 0.5),
+            icon: BitmapDescriptor.fromBytes(carMarker.buffer.asUint8List())));
+
+        _mapController.animateCamera(CameraUpdate.newCameraPosition(
+          CameraPosition(
+            bearing: car['currentLocationHeading'].toDouble(),
+            target: LatLng(car['currentLocation'].latitude,
+                car['currentLocation'].longitude),
+            zoom: 15.0,
+          ),
+        ));
+      });
+    } else {
+      if (destination != null && destinationController.text.isNotEmpty)
+        _addMarker(destination, destinationController.text);
+    }
+
+    notifyListeners();
+  }
+
+  void handleStream(
+      AsyncSnapshot<QuerySnapshot> snapshot, BuildContext context) {
+    _getDriversCarsPositionAndCheckIfAccepted(snapshot, context);
+    _getDriverPositionWhenUserIsAccepted(snapshot, context);
+  }
+
+  Future getDataIfUserExitsTheApp() async {
+    await Firestore.instance
+        .collection('Users')
+        .document(await _readPhoneNumber())
+        .get()
+        .then((user) {
+      if (user['tripID'] != null) {
+        print(user['tripID']['isAskingService']);
+        isAskingService = user['tripID']['isAskingService'];
+      }
+    });
+    notifyListeners();
   }
 }

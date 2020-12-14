@@ -23,12 +23,7 @@ class _UserHistoryState extends State<UserHistory> {
     return File('$path/login_number.txt');
   }
 
-  Future<File> writePhone(String phoneNumber) async {
-    final file = await _localFileNumber;
-    return file.writeAsString('$phoneNumber');
-  }
-
-  Future<String> readPhoneNumber() async {
+  Future<String> _readPhoneNumber() async {
     try {
       final file = await _localFileNumber;
       return await file.readAsString();
@@ -37,10 +32,10 @@ class _UserHistoryState extends State<UserHistory> {
     }
   }
 
-  Future getUserHistory() async {
+  Future _getUserHistory() async {
     await Firestore.instance
         .collection('Users')
-        .document(await readPhoneNumber())
+        .document(await _readPhoneNumber())
         .get()
         .then((user) {
       if (user.exists) {
@@ -57,7 +52,7 @@ class _UserHistoryState extends State<UserHistory> {
 
   @override
   void initState() {
-    getUserHistory();
+    _getUserHistory();
     super.initState();
   }
 

@@ -14,12 +14,8 @@ class _ChangeOriginState extends State<ChangeOrigin> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.blue[400],
-          title: Row(
-            children: <Widget>[Text('Origen')],
-          ),
-        ),
+        appBar:
+            AppBar(backgroundColor: Colors.blue[400], title: Text('Origen')),
         body: Container(
             margin: EdgeInsets.only(top: 20),
             child: Row(
@@ -36,14 +32,13 @@ class _ChangeOriginState extends State<ChangeOrigin> {
                   onSelected: (Place place) async {
                     final geolocation = await place.geolocation;
                     appState.locationController.text = place.description;
-                    final GoogleMapController controller =
-                        appState.mapController;
-                    controller.animateCamera(
-                        CameraUpdate.newLatLng(geolocation.coordinates));
-                    appState.changeOrigin(geolocation.coordinates);
-                    controller.animateCamera(
-                        CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
                     Navigator.pop(context);
+                    appState.mapController.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(
+                            target: geolocation.coordinates, zoom: 14),
+                      ),
+                    );
                   },
                 )),
               ],

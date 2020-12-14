@@ -11,13 +11,6 @@ class AutoCompleteInput extends StatefulWidget {
 }
 
 class _AutoCompleteInputState extends State<AutoCompleteInput> {
-  GoogleMapController controller;
-  @override
-  void dispose() {
-    super.dispose();
-    controller = null;
-  }
-
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -39,11 +32,11 @@ class _AutoCompleteInputState extends State<AutoCompleteInput> {
                 final geolocation = await place.geolocation;
                 appState.sendRequest(place.description);
                 appState.destinationController.text = place.description;
-                controller = appState.mapController;
-                controller.animateCamera(
-                    CameraUpdate.newLatLng(geolocation.coordinates));
-                controller.animateCamera(
-                    CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
+                appState.mapController.animateCamera(
+                  CameraUpdate.newCameraPosition(
+                    CameraPosition(target: geolocation.coordinates, zoom: 14),
+                  ),
+                );
               },
             )),
             RecomendedSearch(phone: appState.phone)

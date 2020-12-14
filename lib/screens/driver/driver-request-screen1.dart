@@ -49,7 +49,7 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                     ? Stack(
                         children: <Widget>[
                           CircleAvatar(
-                            radius: 100,
+                            radius: 125,
                             backgroundColor: Colors.white,
                             child: Text(
                               "Foto de perfil",
@@ -67,9 +67,9 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                         ? Stack(
                             children: <Widget>[
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(200),
+                                borderRadius: BorderRadius.circular(250),
                                 child: Image.file(appState.image,
-                                    height: 200, width: 200, fit: BoxFit.cover),
+                                    height: 250, width: 250, fit: BoxFit.cover),
                               ),
                               FloatingActionButton(
                                   backgroundColor: Colors.orange,
@@ -80,9 +80,9 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                         : Stack(
                             children: <Widget>[
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(200),
+                                borderRadius: BorderRadius.circular(250),
                                 child: Image.network(appState.downloadURL,
-                                    height: 200, width: 200, fit: BoxFit.cover),
+                                    height: 250, width: 250, fit: BoxFit.cover),
                               ),
                               FloatingActionButton(
                                   backgroundColor: Colors.orange,

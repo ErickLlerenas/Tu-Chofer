@@ -51,7 +51,7 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
                     ? Stack(
                         children: <Widget>[
                           CircleAvatar(
-                            radius: 100,
+                            radius: 125,
                             backgroundColor: Colors.white,
                             child: Text(
                               "Foto del coche",
@@ -68,9 +68,9 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
                     : Stack(
                         children: <Widget>[
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(200),
+                            borderRadius: BorderRadius.circular(250),
                             child: Image.file(appState.carImage,
-                                height: 200, width: 200, fit: BoxFit.cover),
+                                height: 250, width: 250, fit: BoxFit.cover),
                           ),
                           FloatingActionButton(
                               backgroundColor: Colors.orange,

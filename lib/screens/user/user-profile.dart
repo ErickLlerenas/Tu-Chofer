@@ -36,7 +36,7 @@ class _UserProfileState extends State<UserProfile> {
                             ? Stack(
                                 children: <Widget>[
                                   CircleAvatar(
-                                    radius: 100,
+                                    radius: 125,
                                     backgroundColor: Colors.white,
                                     child: Text(
                                       "${appState.name[0]}",
@@ -57,10 +57,10 @@ class _UserProfileState extends State<UserProfile> {
                                     children: <Widget>[
                                       ClipRRect(
                                         borderRadius:
-                                            BorderRadius.circular(200),
+                                            BorderRadius.circular(250),
                                         child: Image.file(appState.image,
-                                            height: 200,
-                                            width: 200,
+                                            height: 250,
+                                            width: 250,
                                             fit: BoxFit.cover),
                                       ),
                                       FloatingActionButton(
@@ -73,11 +73,11 @@ class _UserProfileState extends State<UserProfile> {
                                     children: <Widget>[
                                       ClipRRect(
                                         borderRadius:
-                                            BorderRadius.circular(200),
+                                            BorderRadius.circular(250),
                                         child: Image.network(
                                             appState.downloadURL,
-                                            height: 200,
-                                            width: 200,
+                                            height: 250,
+                                            width: 250,
                                             fit: BoxFit.cover),
                                       ),
                                       FloatingActionButton(

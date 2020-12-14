@@ -54,6 +54,8 @@ class MyDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
+              Navigator.pop(context);
+
               Navigator.push(
                   context, MaterialPageRoute(builder: (context) => Home()));
             },
@@ -64,6 +66,8 @@ class MyDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
+              Navigator.pop(context);
+
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => UserProfile()));
             },
@@ -74,6 +78,8 @@ class MyDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
+              Navigator.pop(context);
+
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => UserHistory()));
             },
@@ -84,6 +90,8 @@ class MyDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
+              Navigator.pop(context);
+
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => UserMessages()));
             },
@@ -96,6 +104,8 @@ class MyDrawer extends StatelessWidget {
                   trailing: Icon(Icons.navigate_next),
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.pop(context);
+
                     appState.userWantsToBeDriver
                         ? Navigator.push(
                             context,
@@ -113,6 +123,8 @@ class MyDrawer extends StatelessWidget {
             trailing: Icon(Icons.navigate_next),
             onTap: () {
               Navigator.pop(context);
+              Navigator.pop(context);
+
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -148,6 +160,8 @@ class MyDrawer extends StatelessWidget {
                   trailing: Icon(Icons.navigate_next, color: Colors.orange),
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.pop(context);
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -163,13 +177,15 @@ class MyDrawer extends StatelessWidget {
                   trailing: Icon(Icons.navigate_next, color: Colors.orange),
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.pop(context);
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => DriverMessages()));
                   },
                 ),
-          Divider(),
+          !appState.userIsDriver ? Container() : Divider(),
           ListTile(
             leading: Icon(Icons.phone, color: Colors.red[700]),
             title: Text('Emergencia', style: TextStyle(color: Colors.red[700])),

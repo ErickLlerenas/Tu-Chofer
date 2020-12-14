@@ -14,12 +14,8 @@ class _ChangeDestinationState extends State<ChangeDestination> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.red[400],
-          title: Row(
-            children: <Widget>[Text('Destino')],
-          ),
-        ),
+        appBar:
+            AppBar(backgroundColor: Colors.red[400], title: Text('Destino')),
         body: Container(
             margin: EdgeInsets.only(top: 20),
             child: Row(
@@ -38,13 +34,13 @@ class _ChangeDestinationState extends State<ChangeDestination> {
                     appState.changeDestination(
                         geolocation.coordinates, place.description);
                     appState.destinationController.text = place.description;
-                    final GoogleMapController controller =
-                        appState.mapController;
-                    controller.animateCamera(
-                        CameraUpdate.newLatLng(geolocation.coordinates));
-                    controller.animateCamera(
-                        CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
                     Navigator.pop(context);
+                    appState.mapController.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(
+                            target: geolocation.coordinates, zoom: 14),
+                      ),
+                    );
                   },
                 )),
               ],
