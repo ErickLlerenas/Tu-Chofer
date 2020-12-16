@@ -125,18 +125,18 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
             ),
             onPressed: () {
               Navigator.of(context).maybePop();
-              appState.userIsAskingService(false);
-              Firestore.instance
-                  .collection('Users')
-                  .document('$phone')
-                  .updateData({
-                'tripID': {'isAskingService': false, 'driversList': []}
-              });
             },
           )),
         );
       },
-    );
+    ).then((value) {
+      if (!appState.serviceAccepted) {
+        appState.userIsAskingService(false);
+        Firestore.instance.collection('Users').document('$phone').updateData({
+          'tripID': {'isAskingService': false, 'driversList': []}
+        });
+      }
+    });
   }
 
   Future _getClosestDriversList(origin, userPhone) async {

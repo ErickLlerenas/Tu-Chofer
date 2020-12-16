@@ -66,6 +66,8 @@ class LoginState with ChangeNotifier {
         verificationCompleted: (AuthCredential credential) async {
           AuthResult result = await auth.signInWithCredential(credential);
           if (result.user != null) {
+            Navigator.pop(context);
+            Navigator.pop(context);
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => EnableLocation()));
             writePhone(phoneController.text.trim());
@@ -134,6 +136,8 @@ class LoginState with ChangeNotifier {
       FirebaseUser user = result.user;
 
       if (user != null) {
+        Navigator.pop(context);
+        Navigator.pop(context);
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => EnableLocation()));
         writePhone(phoneController.text.trim());

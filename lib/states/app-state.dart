@@ -575,6 +575,7 @@ class AppState with ChangeNotifier {
       serviceFinished = driver['tripID']['serviceFinished'];
       serviceAccepted = driver['tripID']['serviceAccepted'];
     }
+
     notifyListeners();
   }
 
@@ -918,16 +919,23 @@ class AppState with ChangeNotifier {
   }
 
   Future getDataIfUserExitsTheApp() async {
-    await Firestore.instance
-        .collection('Users')
-        .document(await _readPhoneNumber())
-        .get()
-        .then((user) {
-      if (user['tripID'] != null) {
-        print(user['tripID']['isAskingService']);
-        isAskingService = user['tripID']['isAskingService'];
+    if (_phone != null) {
+      if (_phone.isNotEmpty) {
+        await Firestore.instance
+            .collection('Users')
+            .document()
+            .get()
+            .then((user) {
+          if (user.exists) {
+            if (user['tripID'] != null) {
+              print(user['tripID']['isAskingService']);
+              isAskingService = user['tripID']['isAskingService'];
+            }
+          }
+        });
       }
-    });
+    }
+
     notifyListeners();
   }
 }

@@ -47,7 +47,6 @@ class _DriverMapState extends State<DriverMap> {
   bool driverIsInsideCircle = false;
 
   void acceptService() async {
-    driverAcceptedService = true;
     await Firestore.instance
         .collection('Drivers')
         .document(driverPhone)
@@ -58,6 +57,12 @@ class _DriverMapState extends State<DriverMap> {
         'serviceStarted': false,
         'serviceFinished': false
       }
+    }).then((_) {
+      setState(() {
+        driverAcceptedService = true;
+        driverFinishedService = false;
+        driverStartedService = false;
+      });
     });
   }
 
@@ -111,6 +116,14 @@ class _DriverMapState extends State<DriverMap> {
           flat: true,
           anchor: Offset(0.5, 0.5),
           icon: BitmapDescriptor.fromBytes(imageData));
+
+      _mapController.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(
+          bearing: newLocalData.heading.toDouble(),
+          target: LatLng(latlng.latitude, latlng.longitude),
+          zoom: 16.0,
+        ),
+      ));
     });
   }
 
@@ -124,9 +137,8 @@ class _DriverMapState extends State<DriverMap> {
     try {
       Uint8List imageData = byteData.buffer.asUint8List();
 
-      LocationData location = await _location.getLocation();
-
-      updateCarMarker(location, imageData);
+      // LocationData location = await _location.getLocation();
+      // updateCarMarker(location, imageData);
 
       if (locationSubscription != null) {
         locationSubscription.cancel();
@@ -211,7 +223,6 @@ class _DriverMapState extends State<DriverMap> {
   }
 
   Future checkDriverData() async {
-    print(await readPhoneNumber());
     await Firestore.instance
         .collection('Drivers')
         .document(await readPhoneNumber())
@@ -268,7 +279,6 @@ class _DriverMapState extends State<DriverMap> {
         if (user['tripID']['driversList'].length != 0) {
           if (user['tripID']['driversList'][0]['driver'] == appState.phone) {
             userIsAskingService = true;
-            print(userIsAskingService);
             if (user['trip'] != null) {
               _setUserData(user);
               _addCircle(user['trip']['origin'].latitude,
@@ -301,7 +311,7 @@ class _DriverMapState extends State<DriverMap> {
 
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-        floatingActionButton: driverAcceptedService
+        floatingActionButton: driverAcceptedService && !driverStartedService
             ? Container(
                 margin: EdgeInsets.only(top: 10),
                 child: FloatingActionButton(
@@ -330,7 +340,6 @@ class _DriverMapState extends State<DriverMap> {
               }
               return Stack(children: <Widget>[
                 GoogleMap(
-                  compassEnabled: false,
                   buildingsEnabled: true,
                   indoorViewEnabled: true,
                   initialCameraPosition: CameraPosition(

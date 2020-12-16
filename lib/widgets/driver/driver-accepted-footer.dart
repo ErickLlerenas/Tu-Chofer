@@ -47,9 +47,7 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                 children: <Widget>[
                   Icon(Icons.drag_handle, color: Colors.white),
                   Text(
-                    widget.userIsAskingService
-                        ? "Servicio aceptado"
-                        : "Servicio cancelado",
+                    "Servicio aceptado",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 20,
@@ -57,66 +55,46 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                         fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 30),
-                  widget.userIsAskingService
-                      ? ListTile(
-                          leading: Icon(Icons.location_on, color: Colors.blue),
-                          title: Text("${widget.origin}",
-                              style: TextStyle(color: Colors.white)),
-                        )
-                      : Container(),
-                  widget.userIsAskingService
-                      ? ListTile(
-                          leading: Icon(Icons.location_on, color: Colors.red),
-                          title: Text("${widget.destination}",
-                              style: TextStyle(color: Colors.white)),
-                        )
-                      : Container(),
-                  widget.userIsAskingService
-                      ? ListTile(
-                          leading: Icon(
-                            Icons.attach_money,
-                            color: Colors.teal[400],
-                          ),
-                          title: Text(
-                            "\$${widget.price} pesos",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        )
-                      : Container(),
-                  widget.userIsAskingService
-                      ? ListTile(
-                          leading: Icon(
-                            Icons.local_taxi,
-                            color: Colors.orange,
-                          ),
-                          title: Text(
-                            "${widget.distance}",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        )
-                      : Container(),
-                  widget.userIsAskingService
-                      ? ListTile(
-                          leading: Icon(
-                            Icons.timer,
-                            color: Colors.pink,
-                          ),
-                          title: Text(
-                            "${widget.duration}",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        )
-                      : Container(),
-                  !widget.userIsAskingService
-                      ? Container(
-                          margin: EdgeInsets.all(20),
-                          child: Text(
-                              'El usuario ${widget.userName} ha cancelado la solicitud, puedes cancelar que aceptaste tu solicutid para buscar más usuarios o puedes esperar un poco a ver si vuelve a pedir solicutud.',
-                              textAlign: TextAlign.justify,
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 18)),
-                        )
-                      : Container(),
+                  ListTile(
+                    leading: Icon(Icons.location_on, color: Colors.blue),
+                    title: Text("${widget.origin}",
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.location_on, color: Colors.red),
+                    title: Text("${widget.destination}",
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.attach_money,
+                      color: Colors.teal[400],
+                    ),
+                    title: Text(
+                      "\$${widget.price} pesos",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.local_taxi,
+                      color: Colors.orange,
+                    ),
+                    title: Text(
+                      "${widget.distance}",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.timer,
+                      color: Colors.pink,
+                    ),
+                    title: Text(
+                      "${widget.duration}",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                   ListTile(
                     leading: InkWell(
                       onTap: () async {

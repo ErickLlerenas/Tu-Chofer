@@ -26,6 +26,7 @@ class DriverStartedFooter extends StatefulWidget {
 }
 
 class _DriverStartedFooterState extends State<DriverStartedFooter> {
+  bool loading = false;
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -115,36 +116,105 @@ class _DriverStartedFooterState extends State<DriverStartedFooter> {
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  ListTile(
-                    title: ButtonTheme(
-                      height: 45,
-                      minWidth: 100,
-                      child: FlatButton(
-                          color: Colors.red,
-                          child: Text("Finalizar Servicio",
-                              style: TextStyle(color: Colors.white)),
-                          onPressed: () {
-                            _finishService();
-                          }),
-                    ),
-                  )
+                  !loading
+                      ? ListTile(
+                          title: ButtonTheme(
+                            height: 45,
+                            minWidth: 100,
+                            child: FlatButton(
+                                color: Colors.red,
+                                child: Text("Finalizar Servicio",
+                                    style: TextStyle(color: Colors.white)),
+                                onPressed: () {
+                                  _finishService();
+                                }),
+                          ),
+                        )
+                      : ListTile(
+                          title: LinearProgressIndicator(
+                            minHeight: 50,
+                            valueColor:
+                                new AlwaysStoppedAnimation<Color>(Colors.red),
+                          ),
+                        )
                 ],
               ));
         });
   }
 
   Future _finishService() async {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => DriverEarnings()));
+    setState(() {
+      loading = true;
+    });
+
     await Firestore.instance
         .collection('Drivers')
         .document(widget.driverPhone)
-        .updateData({
-      'tripID': {
-        'userID': '',
-        'serviceAccepted': false,
-        'serviceStarted': false,
-        'serviceFinished': true
+        .get()
+        .then((driver) async {
+      if (driver.exists) {
+        await Firestore.instance
+            .collection('Users')
+            .document(widget.userPhone)
+            .get()
+            .then((user) async {
+          if (user.exists) {
+            List driverHistory = []..addAll(driver['history']);
+            List userhistory = []..addAll(user['history']);
+            int driverIndex = driverHistory.length;
+            int userIndex = userhistory.length;
+
+            userhistory.add({
+              'date': new DateTime.now(),
+              'destination': widget.destination,
+              'cost': widget.price,
+              'origin': widget.origin,
+              'payed': false,
+              'index': userIndex,
+              'driverIndex': driverIndex
+            });
+
+            driverHistory.add({
+              'date': new DateTime.now(),
+              'destination': widget.destination,
+              'cost': widget.price,
+              'origin': widget.origin,
+              'userName': widget.userName,
+              'userPhone': widget.userPhone,
+              'payed': false,
+              'index': driverIndex,
+              'userIndex': userIndex
+            });
+
+            await Firestore.instance
+                .collection('Users')
+                .document(widget.userPhone)
+                .updateData({
+              'history': userhistory,
+              // 'tripID': {'isAskingService': false, 'driversList': []}
+            });
+
+            await Firestore.instance
+                .collection('Drivers')
+                .document(widget.driverPhone)
+                .updateData({
+              'history': driverHistory,
+              'tripID': {
+                'userID': '',
+                'serviceAccepted': false,
+                'serviceStarted': false,
+                'serviceFinished': true
+              }
+            }).then((_) {
+              setState(() {
+                loading = false;
+              });
+              Navigator.pop(context);
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => DriverEarnings()));
+            });
+          }
+        });
       }
     });
   }

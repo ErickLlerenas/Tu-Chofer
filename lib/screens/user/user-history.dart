@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'package:chofer/screens/user/user-payment.dart';
 import 'package:chofer/widgets/my-drawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +34,13 @@ class _UserHistoryState extends State<UserHistory> {
     }
   }
 
+  Future<Null> _onRefresh() async {
+    Completer<Null> completer = new Completer<Null>();
+    _getUserHistory();
+    completer.complete();
+    return completer.future;
+  }
+
   Future _getUserHistory() async {
     await Firestore.instance
         .collection('Users')
@@ -61,93 +70,101 @@ class _UserHistoryState extends State<UserHistory> {
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: Text(
-            "Historial",
-            style: TextStyle(color: Colors.grey[700]),
-          ),
+          title: Text("Historial", style: TextStyle(color: Colors.grey[700])),
           backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: new IconThemeData(color: Colors.black),
         ),
         drawer: MyDrawer(),
-        body: isLoadingHistory
-            ? Center(
-                child: CircularProgressIndicator(
-                valueColor: new AlwaysStoppedAnimation<Color>(Colors.orange),
-              ))
-            : userHistory.length != 0
-                ? SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Column(
-                            children: userHistory.map((history) {
-                          String date = history['date']
-                              .toDate()
-                              .toString()
-                              .substring(
-                                  0,
-                                  history['date'].toDate().toString().length -
-                                      7);
-                          return Container(
-                            margin: EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 7),
-                            child: Card(
-                              color: Colors.grey[100],
-                              child: Column(
-                                children: [
-                                  ListTile(
-                                    title: Text("Fecha y hora:"),
-                                    leading: Icon(Icons.date_range,
-                                        color: Colors.black87),
-                                    subtitle: Text(date),
-                                  ),
-                                  ListTile(
-                                    title: Text("Origen:"),
-                                    leading: Icon(Icons.location_on,
-                                        color: Colors.blue),
-                                    subtitle: Text(history['origin']),
-                                  ),
-                                  ListTile(
-                                    title: Text("Destino:"),
-                                    leading: Icon(Icons.location_on,
-                                        color: Colors.red),
-                                    subtitle: Text(history['destination']),
-                                  ),
-                                  ListTile(
-                                    title: Text("Costo:"),
-                                    leading: Icon(Icons.attach_money,
-                                        color: Colors.teal),
-                                    subtitle:
-                                        Text("\$${history['cost']} pesos"),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList()),
-                      ],
+        body: RefreshIndicator(
+          child: isLoadingHistory
+              ? Center(
+                  child: CircularProgressIndicator(
+                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.orange),
+                ))
+              : userHistory.length != 0
+                  ? ListView.builder(
+                      itemCount: userHistory.length,
+                      itemBuilder: _itemBuilder,
+                    )
+                  : Container(
+                      padding: EdgeInsets.all(50),
+                      child: Column(
+                        children: <Widget>[
+                          Image.asset(
+                            'assets/empty.png',
+                            height: 300,
+                          ),
+                          Text('Sin historial',
+                              style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[700])),
+                          Text(
+                            'No haz realizado ningún viaje',
+                            style: TextStyle(color: Colors.grey[700]),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-                  )
-                : Container(
-                    padding: EdgeInsets.all(50),
-                    child: Column(
-                      children: <Widget>[
-                        Image.asset(
-                          'assets/empty.png',
-                          height: 300,
-                        ),
-                        Text('Sin historial',
-                            style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey[700])),
-                        Text(
-                          'No haz realizado ningún viaje',
-                          style: TextStyle(color: Colors.grey[700]),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ));
+          onRefresh: _onRefresh,
+        ));
+  }
+
+  Widget _itemBuilder(BuildContext context, int index) {
+    // Convert the date to a decent string
+    String date = userHistory[index]['date'].toDate().toString().substring(
+        0, userHistory[index]['date'].toDate().toString().length - 7);
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => UserPayment(
+                    date: date,
+                    index: index,
+                    // driverPhone: driverPhone,
+                    // makePayment: makePayment,
+                    userPhone: userHistory[index]['userPhone'],
+                    payed: userHistory[index]['payed'],
+                    cost: userHistory[index]['cost'],
+                    destination: userHistory[index]['destination'],
+                    origin: userHistory[index]['origin'])));
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 18, vertical: 7),
+        child: Card(
+          color: userHistory[index]['payed']
+              ? Colors.orange[100]
+              : Colors.grey[200],
+          child: Column(
+            children: [
+              ListTile(
+                title: Text("Costo:"),
+                leading: Icon(Icons.attach_money, color: Colors.teal),
+                subtitle: Text("\$${userHistory[index]['cost']} pesos"),
+              ),
+              ListTile(
+                title: Text("Fecha y hora:"),
+                leading: Icon(Icons.date_range, color: Colors.black87),
+                subtitle: Text(date),
+              ),
+              ListTile(
+                title: Text("Origen:"),
+                leading: Icon(Icons.location_on, color: Colors.blue),
+                subtitle: Text(userHistory[index]['origin']),
+              ),
+              ListTile(
+                title: Text("Destino:"),
+                leading: Icon(Icons.location_on, color: Colors.red),
+                subtitle: Text(userHistory[index]['destination']),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

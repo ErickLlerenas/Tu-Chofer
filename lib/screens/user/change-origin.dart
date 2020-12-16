@@ -32,7 +32,8 @@ class _ChangeOriginState extends State<ChangeOrigin> {
                   onSelected: (Place place) async {
                     final geolocation = await place.geolocation;
                     appState.locationController.text = place.description;
-                    Navigator.pop(context);
+                    Navigator.maybePop(context);
+                    appState.changeOrigin(geolocation.coordinates);
                     appState.mapController.animateCamera(
                       CameraUpdate.newCameraPosition(
                         CameraPosition(
