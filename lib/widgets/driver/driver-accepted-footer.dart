@@ -47,7 +47,9 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                 children: <Widget>[
                   Icon(Icons.drag_handle, color: Colors.white),
                   Text(
-                    "Servicio aceptado",
+                    widget.userIsAskingService
+                        ? "Servicio aceptado"
+                        : "Servicio cancelado",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 20,
@@ -55,46 +57,56 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                         fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 30),
-                  ListTile(
-                    leading: Icon(Icons.location_on, color: Colors.blue),
-                    title: Text("${widget.origin}",
-                        style: TextStyle(color: Colors.white)),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.location_on, color: Colors.red),
-                    title: Text("${widget.destination}",
-                        style: TextStyle(color: Colors.white)),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.attach_money,
-                      color: Colors.teal[400],
-                    ),
-                    title: Text(
-                      "\$${widget.price} pesos",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.local_taxi,
-                      color: Colors.orange,
-                    ),
-                    title: Text(
-                      "${widget.distance}",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.timer,
-                      color: Colors.pink,
-                    ),
-                    title: Text(
-                      "${widget.duration}",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+                  widget.userIsAskingService
+                      ? ListTile(
+                          leading: Icon(Icons.location_on, color: Colors.blue),
+                          title: Text("${widget.origin}",
+                              style: TextStyle(color: Colors.white)),
+                        )
+                      : Container(),
+                  widget.userIsAskingService
+                      ? ListTile(
+                          leading: Icon(Icons.location_on, color: Colors.red),
+                          title: Text("${widget.destination}",
+                              style: TextStyle(color: Colors.white)),
+                        )
+                      : Container(),
+                  widget.userIsAskingService
+                      ? ListTile(
+                          leading: Icon(
+                            Icons.attach_money,
+                            color: Colors.teal[400],
+                          ),
+                          title: Text(
+                            "\$${widget.price} pesos",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : Container(),
+                  widget.userIsAskingService
+                      ? ListTile(
+                          leading: Icon(
+                            Icons.local_taxi,
+                            color: Colors.orange,
+                          ),
+                          title: Text(
+                            "${widget.distance}",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : Container(),
+                  widget.userIsAskingService
+                      ? ListTile(
+                          leading: Icon(
+                            Icons.timer,
+                            color: Colors.pink,
+                          ),
+                          title: Text(
+                            "${widget.duration}",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : Container(),
                   ListTile(
                     leading: InkWell(
                       onTap: () async {
@@ -112,17 +124,32 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.person,
-                      color: Colors.grey,
-                    ),
-                    title: Text(
-                      "${widget.userName}",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  !widget.driverIsInsideCircle
+                  widget.userIsAskingService
+                      ? ListTile(
+                          leading: Icon(
+                            Icons.person,
+                            color: Colors.grey,
+                          ),
+                          title: Text(
+                            "${widget.userName}",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : Container(),
+                  !widget.userIsAskingService
+                      ? Container(
+                          margin: EdgeInsets.all(10),
+                          child: Text(
+                            "El usuario ${widget.userName} ha cancelado el servicio. Es necesario que canceles para recibir más solicitudes. Puedes esperar unos segundos para ver si ${widget.userName} cambia de opinion.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                        )
+                      : Container(),
+                  !widget.userIsAskingService
+                      ? SizedBox(height: 30)
+                      : Container(),
+                  !widget.userIsAskingService
                       ? ListTile(
                           title: ButtonTheme(
                             height: 45,
@@ -136,19 +163,21 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                                 }),
                           ),
                         )
-                      : ListTile(
-                          title: ButtonTheme(
-                            height: 45,
-                            minWidth: 100,
-                            child: FlatButton(
-                                color: Colors.orange,
-                                child: Text("Iniciar servicio",
-                                    style: TextStyle(color: Colors.white)),
-                                onPressed: () {
-                                  _startService();
-                                }),
-                          ),
-                        )
+                      : widget.driverIsInsideCircle
+                          ? ListTile(
+                              title: ButtonTheme(
+                                height: 45,
+                                minWidth: 100,
+                                child: FlatButton(
+                                    color: Colors.orange,
+                                    child: Text("Iniciar servicio",
+                                        style: TextStyle(color: Colors.white)),
+                                    onPressed: () {
+                                      _startService();
+                                    }),
+                              ),
+                            )
+                          : Container()
                 ],
               ));
         });

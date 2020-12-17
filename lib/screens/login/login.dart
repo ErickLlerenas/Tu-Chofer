@@ -2,6 +2,8 @@ import 'package:chofer/states/login-state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'login-terms-and-conditions.dart';
+
 class Login extends StatefulWidget {
   @override
   _LoginState createState() => _LoginState();
@@ -83,6 +85,22 @@ class _LoginState extends State<Login> {
                     controller: loginState.phoneController,
                   ),
                   SizedBox(height: 16),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LoginTermsAndConditions()));
+                    },
+                    child: Text(
+                      "He leído y acepto los términos y condiciones.\n",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
                   Container(
                     width: double.infinity,
                     child: !loginState.isLoading

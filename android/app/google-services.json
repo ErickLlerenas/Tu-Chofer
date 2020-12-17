@@ -30,6 +30,9 @@
       "api_key": [
         {
           "current_key": "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY"
+        },
+        {
+          "current_key": "AIzaSyAO-qyWHC8rKyeKpkW9hwj1IsG6T6aperQ"
         }
       ],
       "services": {
@@ -38,6 +41,60 @@
             {
               "client_id": "667363357557-ptk50bie4g1p5fbnembrj4i1sau5sm2v.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "667363357557-27e7sgeid21sj6lu1o14fk66bfpc6h39.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.chofer"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:667363357557:android:56c1df2badd3f6620f993c",
+        "android_client_info": {
+          "package_name": "com.tuchofer.tuchofer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "667363357557-fr9d25nshq2uqt17muhfsicf79ubcife.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tuchofer.tuchofer",
+            "certificate_hash": "1270fc99229142059c799a96fbec71f494778cb8"
+          }
+        },
+        {
+          "client_id": "667363357557-ptk50bie4g1p5fbnembrj4i1sau5sm2v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY"
+        },
+        {
+          "current_key": "AIzaSyAO-qyWHC8rKyeKpkW9hwj1IsG6T6aperQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "667363357557-ptk50bie4g1p5fbnembrj4i1sau5sm2v.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "667363357557-27e7sgeid21sj6lu1o14fk66bfpc6h39.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.chofer"
+              }
             }
           ]
         }

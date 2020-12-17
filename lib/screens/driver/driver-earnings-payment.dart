@@ -95,7 +95,10 @@ class _DriverEarningsPaymentState extends State<DriverEarningsPayment> {
                         _showShouldPayDialog();
                       },
                     ))
-                  : LinearProgressIndicator()
+                  : CircularProgressIndicator(
+                      valueColor:
+                          new AlwaysStoppedAnimation<Color>(Colors.orange),
+                    )
               : Container()
         ],
       ),
@@ -121,14 +124,8 @@ class _DriverEarningsPaymentState extends State<DriverEarningsPayment> {
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () async {
-                setState(() {
-                  loading = true;
-                });
-
-                await widget.makePayment(
-                    widget.index, widget.userIndex, widget.userPhone);
                 Navigator.of(context).pop();
-                Navigator.of(context).pop();
+                _makeCashPayment();
               },
             ),
             TextButton(
@@ -144,5 +141,16 @@ class _DriverEarningsPaymentState extends State<DriverEarningsPayment> {
         );
       },
     );
+  }
+
+  _makeCashPayment() async {
+    setState(() {
+      loading = true;
+    });
+    await widget
+        .makePayment(widget.index, widget.userIndex, widget.userPhone)
+        .then((_) {
+      Navigator.of(context).pop();
+    });
   }
 }

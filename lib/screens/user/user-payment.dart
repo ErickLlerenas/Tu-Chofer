@@ -8,9 +8,13 @@ class UserPayment extends StatefulWidget {
   final int cost;
   final String destination;
   final String origin;
+  final String driverName;
+  final Function makePayment;
 
   UserPayment(
       {this.cost,
+      this.driverName,
+      this.makePayment,
       this.date,
       this.destination,
       this.index,
@@ -51,18 +55,35 @@ class _UserPaymentState extends State<UserPayment> {
               title: Text("Destino:"),
               leading: Icon(Icons.location_on, color: Colors.red),
               subtitle: Text(widget.destination)),
+          ListTile(
+            leading: Icon(
+              Icons.person,
+              color: Colors.grey,
+            ),
+            title: Text('Chofer:'),
+            subtitle: Text(widget.driverName),
+          ),
           SizedBox(height: 30),
           !widget.payed
-              ? ListTile(
-                  title: FlatButton(
-                  height: 45,
-                  color: Colors.orange,
-                  child: Text("Realizar pago con tarjeta",
-                      style: TextStyle(color: Colors.white)),
-                  onPressed: () async {
-                    print('XDDD');
-                  },
-                ))
+              ? Column(
+                  children: [
+                    Text(
+                      'El pago con tarjeta estará disponible en futuras actualizaciones...',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    ListTile(
+                        title: FlatButton(
+                      height: 45,
+                      color: Colors.orange,
+                      child: Text("Realizar pago con tarjeta",
+                          style: TextStyle(color: Colors.white)),
+                      onPressed: () async {
+                        // await widget.makePayment();
+                      },
+                    )),
+                  ],
+                )
               : Container()
         ],
       ),

@@ -117,6 +117,11 @@ class _UserHistoryState extends State<UserHistory> {
     String date = userHistory[index]['date'].toDate().toString().substring(
         0, userHistory[index]['date'].toDate().toString().length - 7);
 
+    Future makePayment() async {
+      //Pendiente para la siguiente actualización.
+      print('PAGADOOOOO');
+    }
+
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -125,8 +130,8 @@ class _UserHistoryState extends State<UserHistory> {
                 builder: (context) => UserPayment(
                     date: date,
                     index: index,
-                    // driverPhone: driverPhone,
-                    // makePayment: makePayment,
+                    driverName: userHistory[index]['driverName'],
+                    makePayment: makePayment,
                     userPhone: userHistory[index]['userPhone'],
                     payed: userHistory[index]['payed'],
                     cost: userHistory[index]['cost'],
@@ -160,6 +165,14 @@ class _UserHistoryState extends State<UserHistory> {
                 title: Text("Destino:"),
                 leading: Icon(Icons.location_on, color: Colors.red),
                 subtitle: Text(userHistory[index]['destination']),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.person,
+                  color: Colors.grey,
+                ),
+                title: Text('Chofer:'),
+                subtitle: Text(userHistory[index]['driverName']),
               ),
             ],
           ),

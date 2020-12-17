@@ -171,7 +171,9 @@ class _DriverStartedFooterState extends State<DriverStartedFooter> {
               'origin': widget.origin,
               'payed': false,
               'index': userIndex,
-              'driverIndex': driverIndex
+              'driverIndex': driverIndex,
+              'driverPhone': widget.driverPhone,
+              'driverName': driver['name']
             });
 
             driverHistory.add({
@@ -191,7 +193,7 @@ class _DriverStartedFooterState extends State<DriverStartedFooter> {
                 .document(widget.userPhone)
                 .updateData({
               'history': userhistory,
-              // 'tripID': {'isAskingService': false, 'driversList': []}
+              'tripID': {'isAskingService': false, 'driversList': []}
             });
 
             await Firestore.instance
