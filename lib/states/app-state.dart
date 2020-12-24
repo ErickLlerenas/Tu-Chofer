@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:chofer/screens/driver/driver-request-pending.dart';
+import 'package:chofer/screens/user/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
@@ -212,8 +213,9 @@ class AppState with ChangeNotifier {
   }
 
   //  SEND REQUEST
-  void sendRequest(String intendedLocation) async {
+  void sendRequest(String intendedLocation, context) async {
     isLoadingPrices = false;
+    destinationController.text = intendedLocation;
     await _getActualPrices();
     origin = _initialPosition;
     List<Placemark> placemark =
@@ -246,6 +248,7 @@ class AppState with ChangeNotifier {
     isLoadingPrices = true;
     _createRoute(route);
     notifyListeners();
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
 
   //  ON CAMERA MOVE
@@ -264,9 +267,10 @@ class AppState with ChangeNotifier {
   }
 
   // CHANGES THE ORIGIN OF THE ROUTE
-  void changeOrigin(LatLng origen) async {
+  void changeOrigin(LatLng origen, context) async {
     origin = origen;
     isLoadingPrices = false;
+    notifyListeners();
     await _getActualPrices();
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(destinationController.text);
@@ -291,12 +295,14 @@ class AppState with ChangeNotifier {
     }
     isLoadingPrices = true;
     notifyListeners();
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
 
   // CHANGES THE DESTINATION OF THE ROUTE
-  void changeDestination(LatLng dest, intendedLocation) async {
+  void changeDestination(LatLng dest, intendedLocation, context) async {
     destination = dest;
     isLoadingPrices = false;
+    notifyListeners();
     await _getActualPrices();
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(intendedLocation);
@@ -319,6 +325,7 @@ class AppState with ChangeNotifier {
     isLoadingPrices = true;
     _addMarker(dest, intendedLocation);
     notifyListeners();
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
 
   // CHECKS IF THE USER HAS PERMISSIONS AND THE LOCATION ACTIVE

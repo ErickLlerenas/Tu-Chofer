@@ -47,7 +47,7 @@ class _RecomendedSearchState extends State<RecomendedSearch> {
                 onPressed: () {
                   appState.getCurrentLocation();
                   appState.destinationController.text = recomended;
-                  appState.sendRequest(recomended);
+                  appState.sendRequest(recomended, context);
                 },
                 padding: EdgeInsets.symmetric(vertical: 16, horizontal: 10),
                 minWidth: double.infinity,

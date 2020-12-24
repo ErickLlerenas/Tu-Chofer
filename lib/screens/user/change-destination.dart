@@ -32,7 +32,7 @@ class _ChangeDestinationState extends State<ChangeDestination> {
                   onSelected: (Place place) async {
                     final geolocation = await place.geolocation;
                     appState.changeDestination(
-                        geolocation.coordinates, place.description);
+                        geolocation.coordinates, place.description, context);
                     appState.destinationController.text = place.description;
                     Navigator.pop(context);
                     appState.mapController.animateCamera(
