@@ -47,29 +47,72 @@ class _DriverMapState extends State<DriverMap> {
   bool driverIsInsideCircle = false;
 
   void acceptService() async {
+    bool isAlreadyAccepted = false;
     await Firestore.instance
         .collection('Drivers')
-        .document(driverPhone)
-        .updateData({
-      'tripID': {
-        'userID': userPhone,
-        'serviceAccepted': true,
-        'serviceStarted': false,
-        'serviceFinished': false
-      }
-    }).then((_) {
-      setState(() {
-        driverAcceptedService = true;
-        driverFinishedService = false;
-        driverStartedService = false;
+        .getDocuments()
+        .then((drivers) {
+      drivers.documents.forEach((driver) {
+        if (driver.data['tripID']['userID'] == userPhone &&
+            driver.data['tripID']['serviceAccepted']) {
+          isAlreadyAccepted = true;
+        }
       });
     });
+    if (!isAlreadyAccepted) {
+      await Firestore.instance
+          .collection('Drivers')
+          .document(driverPhone)
+          .updateData({
+        'tripID': {
+          'userID': userPhone,
+          'serviceAccepted': true,
+          'serviceStarted': false,
+          'serviceFinished': false
+        }
+      }).then((_) {
+        setState(() {
+          driverAcceptedService = true;
+          driverFinishedService = false;
+          driverStartedService = false;
+        });
+      });
+    } else {
+      showAlreadyAccepted(context);
+    }
   }
 
   void disposeUserService() {
     setState(() {
       userIsAskingService = false;
     });
+  }
+
+  void showAlreadyAccepted(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            title: Text(
+              "Otro chofer ya aceptó el viaje",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
+            ),
+            content: FlatButton(
+              color: Colors.orange,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Ok',
+                style: TextStyle(color: Colors.white),
+              ),
+            ));
+      },
+    );
   }
 
   void startService() {
@@ -281,8 +324,10 @@ class _DriverMapState extends State<DriverMap> {
             userIsAskingService = true;
             if (user['trip'] != null) {
               _setUserData(user);
-              _addCircle(user['trip']['origin'].latitude,
-                  user['trip']['origin'].longitude);
+              if (driverAcceptedService) {
+                _addCircle(user['trip']['origin'].latitude,
+                    user['trip']['origin'].longitude);
+              }
             }
           }
         }

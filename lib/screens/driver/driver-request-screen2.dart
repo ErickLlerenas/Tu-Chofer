@@ -184,7 +184,7 @@ class _DriverRequestScreen2State extends State<DriverRequestScreen2> {
                             appState.carPlatesController.text,
                             context);
                       } else {
-                        appState.imageAlert(
+                        appState.showImageAlertDialog(
                             context, "Necesitas una foto de tu coche.");
                       }
                     }

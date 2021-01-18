@@ -33,6 +33,7 @@ class DriverAcceptedFooter extends StatefulWidget {
 }
 
 class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
+  bool canceling = false;
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -107,23 +108,25 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                           ),
                         )
                       : Container(),
-                  ListTile(
-                    leading: InkWell(
-                      onTap: () async {
-                        if (await canLaunch("tel: ${widget.userPhone}")) {
-                          await launch("tel: ${widget.userPhone}");
-                        }
-                      },
-                      child: Icon(
-                        Icons.phone,
-                        color: Colors.green,
-                      ),
-                    ),
-                    title: Text(
-                      "${widget.userPhone}",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+                  widget.userIsAskingService
+                      ? ListTile(
+                          leading: InkWell(
+                            onTap: () async {
+                              if (await canLaunch("tel: ${widget.userPhone}")) {
+                                await launch("tel: ${widget.userPhone}");
+                              }
+                            },
+                            child: Icon(
+                              Icons.phone,
+                              color: Colors.green,
+                            ),
+                          ),
+                          title: Text(
+                            "${widget.userPhone}",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : Container(),
                   widget.userIsAskingService
                       ? ListTile(
                           leading: Icon(
@@ -140,7 +143,7 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                       ? Container(
                           margin: EdgeInsets.all(10),
                           child: Text(
-                            "El usuario ${widget.userName} ha cancelado el servicio. Es necesario que canceles para recibir más solicitudes. Puedes esperar unos segundos para ver si ${widget.userName} cambia de opinion.",
+                            "El usuario ${widget.userName} ha cancelado el servicio.",
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Colors.white, fontSize: 18),
                           ),
@@ -150,74 +153,53 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                       ? SizedBox(height: 30)
                       : Container(),
                   !widget.userIsAskingService
+                      ? Icon(
+                          Icons.error,
+                          color: Colors.orange,
+                          size: 200,
+                        )
+                      : Container(),
+                  !widget.userIsAskingService
+                      ? SizedBox(height: 30)
+                      : Container(),
+                  !widget.userIsAskingService && !canceling
                       ? ListTile(
                           title: ButtonTheme(
                             height: 45,
                             minWidth: 100,
                             child: FlatButton(
-                                color: Colors.red,
-                                child: Text("Cancelar servicio",
+                                color: Colors.orange,
+                                child: Text("Ok, regresar",
                                     style: TextStyle(color: Colors.white)),
-                                onPressed: () {
-                                  _showCancelServiceDialog();
+                                onPressed: () async {
+                                  canceling = true;
+                                  setState(() {});
+                                  await _cancelService();
+                                  await widget.driverCancelService();
                                 }),
                           ),
                         )
-                      : widget.driverIsInsideCircle
-                          ? ListTile(
-                              title: ButtonTheme(
-                                height: 45,
-                                minWidth: 100,
-                                child: FlatButton(
-                                    color: Colors.orange,
-                                    child: Text("Iniciar servicio",
-                                        style: TextStyle(color: Colors.white)),
-                                    onPressed: () {
-                                      _startService();
-                                    }),
-                              ),
-                            )
-                          : Container()
+                      : canceling
+                          ? LinearProgressIndicator()
+                          : widget.driverIsInsideCircle
+                              ? ListTile(
+                                  title: ButtonTheme(
+                                    height: 45,
+                                    minWidth: 100,
+                                    child: FlatButton(
+                                        color: Colors.orange,
+                                        child: Text("Iniciar servicio",
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                        onPressed: () {
+                                          _startService();
+                                        }),
+                                  ),
+                                )
+                              : Container()
                 ],
               ));
         });
-  }
-
-  Future<void> _showCancelServiceDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            '¿Cancelar servicio?',
-            textAlign: TextAlign.center,
-          ),
-          actions: <Widget>[
-            FlatButton(
-              color: Colors.red[800],
-              child: Text('Cancelar'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                _showLoadingCancelDialog();
-                _cancelService();
-                widget.driverCancelService();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'No',
-                style: TextStyle(color: Colors.grey),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future _cancelService() async {
@@ -232,34 +214,6 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
         'serviceFinished': false
       }
     });
-  }
-
-  Future<void> _showLoadingCancelDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-            content: Container(
-          height: 100,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Cancelando..',
-                  style: TextStyle(
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.normal,
-                      fontSize: 20)),
-              SizedBox(height: 10),
-              Center(
-                  child: CircularProgressIndicator(
-                valueColor: new AlwaysStoppedAnimation<Color>(Colors.red[800]),
-              )),
-            ],
-          ),
-        ));
-      },
-    );
   }
 
   Future _startService() async {

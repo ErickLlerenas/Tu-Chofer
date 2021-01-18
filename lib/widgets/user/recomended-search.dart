@@ -45,7 +45,7 @@ class _RecomendedSearchState extends State<RecomendedSearch> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 onPressed: () {
-                  appState.getCurrentLocation();
+                  appState.getCurrentLocationAndAnimateCamera();
                   appState.destinationController.text = recomended;
                   appState.sendRequest(recomended, context);
                 },

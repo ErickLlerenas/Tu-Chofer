@@ -53,7 +53,7 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
                     subtitle: Text('${appState.destinationController.text}'),
                     trailing: Icon(Icons.navigate_next),
                   ),
-                  !appState.isLoadingPrices
+                  appState.isLoadingPrices
                       ? ListTile(
                           title: LinearProgressIndicator(
                             valueColor: new AlwaysStoppedAnimation<Color>(
@@ -69,7 +69,7 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
                           subtitle: Text(
                             "Distancia: ${appState.distance}\nDuración: ${appState.duration}",
                           )),
-                  !appState.isLoadingPrices
+                  appState.isLoadingPrices
                       ? Container()
                       : ListTile(
                           subtitle: ButtonTheme(
@@ -147,26 +147,28 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
 
     for (var driver in drivers.documents) {
       if (driver['currentLocation'] != null) {
-        if (driver['phone'] != userPhone && driver['isActive']) {
-          //Set Driver LatLng
-          LatLng driverLatLng = LatLng(driver['currentLocation'].latitude,
-              driver['currentLocation'].longitude);
+        if (driver['isActive']) {
+          if (driver['phone'] != userPhone) {
+            //Set Driver LatLng
+            LatLng driverLatLng = LatLng(driver['currentLocation'].latitude,
+                driver['currentLocation'].longitude);
 
-          //Set User LatLng
-          LatLng userLatLng = LatLng(origin.latitude, origin.longitude);
+            //Set User LatLng
+            LatLng userLatLng = LatLng(origin.latitude, origin.longitude);
 
-          //Get the distance between those two Points
-          var distance = await _googleMapsServices.getDistanceValue(
-              driverLatLng, userLatLng);
+            //Get the distance between those two Points
+            var distance = await _googleMapsServices.getDistanceValue(
+                driverLatLng, userLatLng);
 
-          //Create an array with the list
-          driversList.add({'distance': distance, 'driver': driver['phone']});
+            //Create an array with the list
+            driversList.add({'distance': distance, 'driver': driver['phone']});
 
-          //Sort the list so the nearest drivers are the firsts
-          driversList.sort((a, b) => a['distance'].compareTo(b['distance']));
+            //Sort the list so the nearest drivers are the firsts
+            driversList.sort((a, b) => a['distance'].compareTo(b['distance']));
 
-          //Equal the List to global list
-          sortedDriversList = driversList;
+            //Equal the List to global list
+            sortedDriversList = driversList;
+          }
         }
       }
     }
