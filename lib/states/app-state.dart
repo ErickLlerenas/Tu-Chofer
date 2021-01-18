@@ -827,9 +827,12 @@ class AppState with ChangeNotifier {
     if (destinationController.text.isNotEmpty) {
       if (isAskingService) {
         if (!serviceAccepted) {
-          _checkIfDriverAccepted(snapshot, context);
+          WidgetsBinding.instance.addPostFrameCallback(
+              (_) => _checkIfDriverAccepted(snapshot, context));
         } else {
-          _getDriverPosition(snapshot);
+          Future.delayed(const Duration(milliseconds: 5000), () {
+            _getDriverPosition(snapshot);
+          });
         }
       }
     }

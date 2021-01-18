@@ -51,7 +51,6 @@ class _UserMapState extends State<UserMap> {
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (!snapshot.hasData) return Container();
-
               appState.handleStream(snapshot, context);
 
               return Stack(children: <Widget>[
