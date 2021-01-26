@@ -1,7 +1,7 @@
 name: chofer
 description: A taxi app for Colima Colima.
 
-version: 1.0.3+3
+version: 1.0.7+7
 
 environment:
   sdk: ">=2.1.0 <3.0.0"

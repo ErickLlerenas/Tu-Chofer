@@ -22,11 +22,11 @@ class GoogleMapsServices {
     return answer;
   }
 
-  Future<int> getDistanceValue(LatLng l1, LatLng l2) async {
-    String url =
-        "https://maps.googleapis.com/maps/api/directions/json?origin=${l1.latitude},${l1.longitude}&destination=${l2.latitude},${l2.longitude}&key=$apiKey";
-    http.Response response = await http.get(url);
-    Map values = jsonDecode(response.body);
-    return values["routes"][0]["legs"][0]["distance"]["value"];
+  Future<double> getDistanceValue(LatLng l1, LatLng l2) async {
+    double distanceLat = (l1.latitude.abs() - l2.latitude.abs()).abs();
+    double distanceLng = (l2.longitude.abs() - l2.longitude.abs()).abs();
+    double distance = distanceLat + distanceLng;
+
+    return distance;
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:chofer/screens/driver/driver-request-pending.dart';
+import 'package:chofer/widgets/map/mapStyle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
@@ -21,6 +23,7 @@ class AppState with ChangeNotifier {
   Set<Marker> _markers = Set<Marker>();
   Set<Polyline> _polyLines;
   GoogleMapController _mapController;
+  MapStyle mapStyle = MapStyle();
   GoogleMapsServices _googleMapsServices = GoogleMapsServices();
   TextEditingController locationController = TextEditingController();
   TextEditingController destinationController = TextEditingController();
@@ -30,7 +33,8 @@ class AppState with ChangeNotifier {
   GoogleMapController get mapController => _mapController;
   Set<Marker> get markers => _markers;
   Set<Polyline> get polyLines => _polyLines;
-
+  Set<Circle> circles;
+  LatLng colima = LatLng(19.2429246, -103.7312651);
   LatLng destination;
   LatLng origin;
   String distance;
@@ -49,6 +53,8 @@ class AppState with ChangeNotifier {
   String _phone;
   String _name;
   String tempName;
+  bool originIsInsideCircle = true;
+  bool destinationIsInsideCircle = true;
   bool validName = true;
   bool validAddres = true;
   bool validCarName = true;
@@ -149,19 +155,82 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void _calculatePricing() {
+  Future _calculatePricing() async {
     if (distanceValue > 3000) {
-      // _locality = placemark[0].locality;
-      // if (_locality == "Comala") {
-      //   costoBase += 10;
-      // }
+      bool isInsideCircle = await _checkIfUserIsInsideCircle();
+      if (!isInsideCircle) {
+        costoMinuto = 10;
+      }
 
       costoServicio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
               costoBase +
               (durationValue / 60 * costoMinuto))
           .toInt();
+
+      String lastNumber =
+          costoServicio.toString()[costoServicio.toString().length - 1];
+      switch (int.parse(lastNumber)) {
+        case 1:
+          costoServicio += 4;
+          break;
+        case 2:
+          costoServicio += 3;
+          break;
+        case 3:
+          costoServicio += 2;
+          break;
+        case 5:
+          costoServicio += 0;
+          break;
+        case 6:
+          costoServicio += 4;
+          break;
+        case 7:
+          costoServicio += 3;
+          break;
+        case 8:
+          costoServicio += 2;
+          break;
+        case 9:
+          costoServicio += 1;
+          break;
+        default:
+          break;
+      }
     }
     notifyListeners();
+  }
+
+  Future<bool> _checkIfUserIsInsideCircle() async {
+    var originX = pow(origin.latitude.abs() - colima.latitude.abs(), 2);
+    var originY = pow(origin.longitude.abs() - colima.longitude.abs(), 2);
+
+    var destinationX =
+        pow(destination.latitude.abs() - colima.latitude.abs(), 2);
+    var destinationY =
+        pow(destination.longitude.abs() - colima.longitude.abs(), 2);
+
+    if (sqrt(originX + originY) > 0.06323688276393781) {
+      originIsInsideCircle = false;
+    } else {
+      originIsInsideCircle = true;
+    }
+
+    if (sqrt(destinationX + destinationY) > 0.06323688276393781) {
+      print("DESTINO ESTÁ FUERA DEL CÍRCULO");
+
+      destinationIsInsideCircle = false;
+    } else {
+      print("DESTINO ESTÁ DENTRO DEL CÍRCULO");
+      print(sqrt(destinationX + destinationY));
+      destinationIsInsideCircle = true;
+    }
+    notifyListeners();
+    if (originIsInsideCircle && destinationIsInsideCircle) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   void getUserLocation() async {
@@ -204,6 +273,16 @@ class AppState with ChangeNotifier {
         infoWindow: InfoWindow(title: "Destino", snippet: address),
         icon: BitmapDescriptor.defaultMarker));
     notifyListeners();
+  }
+
+  void _addCircle() {
+    circles = Set<Circle>();
+    circles.add(Circle(
+        circleId: CircleId(Uuid().v1()),
+        center: colima,
+        radius: 6925,
+        strokeWidth: 3,
+        strokeColor: Colors.orange));
   }
 
   List<LatLng> _convertToLatLng(List points) {
@@ -266,9 +345,7 @@ class AppState with ChangeNotifier {
 
   void onMapCreated(GoogleMapController controller) {
     _mapController = controller;
-    String _mapStyle =
-        '[ { "featureType": "all", "elementType": "labels.text.fill", "stylers": [ { "color": "#7c93a3" }, { "lightness": "-10" } ] }, { "featureType": "administrative.country", "elementType": "geometry", "stylers": [ { "visibility": "on" } ] }, { "featureType": "administrative.country", "elementType": "geometry.stroke", "stylers": [ { "color": "#a0a4a5" } ] }, { "featureType": "administrative.province", "elementType": "geometry.stroke", "stylers": [ { "color": "#62838e" } ] }, { "featureType": "landscape", "elementType": "geometry.fill", "stylers": [ { "color": "#dde3e3" } ] }, { "featureType": "landscape.man_made", "elementType": "geometry.stroke", "stylers": [ { "color": "#3f4a51" }, { "weight": "0.30" } ] }, { "featureType": "poi", "elementType": "all", "stylers": [ { "visibility": "simplified" } ] }, { "featureType": "poi.attraction", "elementType": "all", "stylers": [ { "visibility": "on" } ] }, { "featureType": "poi.business", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.government", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.park", "elementType": "all", "stylers": [ { "visibility": "on" } ] }, { "featureType": "poi.place_of_worship", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.school", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.sports_complex", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "road", "elementType": "all", "stylers": [ { "saturation": "-100" }, { "visibility": "on" } ] }, { "featureType": "road", "elementType": "geometry.stroke", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [ { "color": "#bbcacf" } ] }, { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [ { "lightness": "0" }, { "color": "#bbcacf" }, { "weight": "0.50" } ] }, { "featureType": "road.highway", "elementType": "labels", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway", "elementType": "labels.text", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway.controlled_access", "elementType": "geometry.fill", "stylers": [ { "color": "#ffffff" } ] }, { "featureType": "road.highway.controlled_access", "elementType": "geometry.stroke", "stylers": [ { "color": "#a9b4b8" } ] }, { "featureType": "road.arterial", "elementType": "labels.icon", "stylers": [ { "invert_lightness": true }, { "saturation": "-7" }, { "lightness": "3" }, { "gamma": "1.80" }, { "weight": "0.01" } ] }, { "featureType": "transit", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "water", "elementType": "geometry.fill", "stylers": [ { "color": "#a3c7df" } ] } ]';
-    _mapController.setMapStyle(_mapStyle);
+    _mapController.setMapStyle(mapStyle.getMapStyle());
     notifyListeners();
   }
 
@@ -736,10 +813,14 @@ class AppState with ChangeNotifier {
     snapshot.data.documents.forEach((DocumentSnapshot driver) {
       if (driver['currentLocation'] != null) {
         if (driver['isActive']) {
-          carsPosition.add({
-            'currentLocation': driver['currentLocation'],
-            'currentLocationHeading': driver['currentLocationHeading']
-          });
+          if (driver['tripID'] != null) {
+            if (!driver['tripID']['serviceAccepted']) {
+              carsPosition.add({
+                'currentLocation': driver['currentLocation'],
+                'currentLocationHeading': driver['currentLocationHeading']
+              });
+            }
+          }
         }
       }
     });
@@ -822,6 +903,7 @@ class AppState with ChangeNotifier {
       if (destinationController.text.isEmpty) {
         carsPosition = _getDriversCarsPosition(snapshot);
         updateCarMarkers(carsPosition, context);
+        _addCircle();
       }
     });
     if (destinationController.text.isNotEmpty) {

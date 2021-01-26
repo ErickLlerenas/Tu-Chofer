@@ -65,7 +65,8 @@ class _UserMapState extends State<UserMap> {
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,
                     polylines: appState.polyLines,
-                    markers: appState.markers),
+                    markers: appState.markers,
+                    circles: appState.circles),
                 appState.destinationController.text.isEmpty &&
                         !appState.serviceAccepted
                     ? AutoCompleteInput()

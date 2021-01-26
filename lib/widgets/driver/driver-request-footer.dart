@@ -10,7 +10,8 @@ class DriverRequestFooter extends StatefulWidget {
   final String duration;
   final String phone;
   final Function acceptService;
-  final Function disposeUserService;
+  final Function closeAlert;
+  final Function openAlert;
   DriverRequestFooter(
       {this.origin,
       this.destination,
@@ -19,7 +20,8 @@ class DriverRequestFooter extends StatefulWidget {
       this.duration,
       this.phone,
       this.acceptService,
-      this.disposeUserService});
+      this.openAlert,
+      this.closeAlert});
   @override
   _DriverRequestFooterState createState() => _DriverRequestFooterState();
 }
@@ -28,9 +30,29 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
   Timer _timer;
   int _time = 10;
   final assetsAudioPlayer = AssetsAudioPlayer();
+  Color color = Colors.white;
+  double margin = 20;
+  bool hackAlert = false;
+  double heigth = 2.4;
+
+  void animateAlert() {
+    hackAlert = !hackAlert;
+    setState(() {
+      if (hackAlert) {
+        margin = 15;
+        heigth = 2.3;
+        color = Colors.white70;
+      } else {
+        margin = 20;
+        heigth = 2.4;
+        color = Colors.white;
+      }
+    });
+  }
 
   @override
   void initState() {
+    widget.openAlert();
     startTimer();
     playSound();
     super.initState();
@@ -46,6 +68,7 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
 
   @override
   void dispose() {
+    widget.closeAlert();
     _timer.cancel();
     stopSound();
     super.dispose();
@@ -57,9 +80,11 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
       oneSec,
       (Timer timer) => setState(
         () {
+          animateAlert();
+
           if (_time < 1) {
+            widget.closeAlert();
             timer.cancel();
-            widget.disposeUserService();
           } else {
             _time = _time - 1;
           }
@@ -72,92 +97,102 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
   Widget build(BuildContext context) {
     return _time == 0
         ? Container()
-        : DraggableScrollableSheet(
-            maxChildSize: 0.7,
-            initialChildSize: 0.7,
-            minChildSize: 0.7,
-            builder: (context, controller) {
-              return Container(
-                  color: Colors.white,
-                  child: ListView(
-                    children: <Widget>[
-                      Text(
-                        '¡Viaje encontrado!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 24,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        '$_time',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 40,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.bold),
-                      ),
-                      ListTile(
-                        leading:
-                            Icon(Icons.location_on, color: Colors.blue[400]),
-                        title: Text("Origen"),
-                        subtitle: Text('${widget.origin}'),
-                      ),
-                      ListTile(
-                        leading:
-                            Icon(Icons.location_on, color: Colors.red[400]),
-                        title: Text("Destino"),
-                        subtitle: Text('${widget.destination}'),
-                      ),
-                      ListTile(
-                        leading: Icon(
-                          Icons.attach_money,
-                          color: Colors.teal[400],
-                        ),
-                        title: Text("Costo"),
-                        subtitle: Text(
-                          "\$${widget.price} pesos",
-                        ),
-                      ),
-                      ListTile(
-                          leading: Icon(
-                            Icons.local_taxi,
-                            color: Colors.orange,
-                          ),
-                          title: Text("Distancia"),
-                          subtitle: Text(
-                            "${widget.distance}",
-                          )),
-                      ListTile(
-                        leading: Icon(
-                          Icons.timer,
-                          color: Colors.pink,
-                        ),
-                        title: Text("Duración"),
-                        subtitle: Text(
-                          "${widget.duration}",
-                        ),
-                      ),
-                      ListTile(
-                          title: ButtonTheme(
-                        height: 50,
-                        child: FlatButton(
-                          color: Colors.orange,
-                          child: Text(
-                            'Aceptar',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () {
-                            stopSound();
-                            setState(() {
-                              _time = 0;
-                              widget.acceptService();
-                            });
-                          },
-                        ),
-                      ))
-                    ],
-                  ));
-            });
+        : Center(
+            child: InkWell(
+              onTap: () {
+                stopSound();
+                setState(() {
+                  _time = 0;
+                  widget.acceptService();
+                });
+              },
+              child: AnimatedContainer(
+                margin: EdgeInsets.all(margin),
+                width: MediaQuery.of(context).size.height / 2,
+                height: MediaQuery.of(context).size.height / heigth,
+                curve: Curves.bounceOut,
+                duration: Duration(milliseconds: 900),
+                color: color,
+                child: Container(
+                    child: ListView(
+                  children: <Widget>[
+                    Text(
+                      '¡Viaje encontrado!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '$_time',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 40,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.bold),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.location_on, color: Colors.blue[400]),
+                      title: Text("Origen"),
+                      subtitle: Text('${widget.origin}'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.location_on, color: Colors.red[400]),
+                      title: Text("Destino"),
+                      subtitle: Text('${widget.destination}'),
+                    ),
+                    // ListTile(
+                    //   leading: Icon(
+                    //     Icons.attach_money,
+                    //     color: Colors.teal[400],
+                    //   ),
+                    //   title: Text("Costo"),
+                    //   subtitle: Text(
+                    //     "\$${widget.price} pesos",
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //     leading: Icon(
+                    //       Icons.local_taxi,
+                    //       color: Colors.orange,
+                    //     ),
+                    //     title: Text("Distancia"),
+                    //     subtitle: Text(
+                    //       "${widget.distance}",
+                    //     )),
+                    // ListTile(
+                    //   leading: Icon(
+                    //     Icons.timer,
+                    //     color: Colors.pink,
+                    //   ),
+                    //   title: Text("Duración"),
+                    //   subtitle: Text(
+                    //     "${widget.duration}",
+                    //   ),
+                    // ),
+                    // ListTile(
+                    //     title: ButtonTheme(
+                    //   height: 50,
+                    //   child: FlatButton(
+                    //     color: Colors.orange,
+                    //     child: Text(
+                    //       'Aceptar',
+                    //       style: TextStyle(color: Colors.white),
+                    //     ),
+                    //     onPressed: () {
+                    //       stopSound();
+                    //       setState(() {
+                    //         _time = 0;
+                    //         widget.acceptService();
+                    //       });
+                    //     },
+                    //   ),
+                    // ))
+                  ],
+                )),
+              ),
+            ),
+          );
   }
 }
