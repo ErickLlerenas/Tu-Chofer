@@ -30,8 +30,8 @@ class _AutoCompleteInputState extends State<AutoCompleteInput> {
               radius: 20000,
               onSelected: (Place place) async {
                 final geolocation = await place.geolocation;
-                appState.sendRequest(place.description);
                 appState.destinationController.text = place.description;
+                appState.sendRequest(place.description);
                 appState.mapController.animateCamera(
                   CameraUpdate.newCameraPosition(
                     CameraPosition(target: geolocation.coordinates, zoom: 14),
