@@ -539,7 +539,7 @@ class _DriverMapState extends State<DriverMap> {
                                               Text(
                                                 !driverIsActive
                                                     ? 'Estás desconectado'
-                                                    : 'Conectado. Buscando viajes ...',
+                                                    : 'Conectado, buscando viajes..',
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
                                                     fontSize: 20,
