@@ -15,6 +15,7 @@ class UserRequestFooter extends StatefulWidget {
 class _UserRequestFooterState extends State<UserRequestFooter> {
   GoogleMapsServices _googleMapsServices = GoogleMapsServices();
   List sortedDriversList = [];
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -53,7 +54,7 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
                     subtitle: Text('${appState.destinationController.text}'),
                     trailing: Icon(Icons.navigate_next),
                   ),
-                  !appState.isLoadingPrices
+                  appState.isLoadingPrices
                       ? ListTile(
                           title: LinearProgressIndicator(
                             valueColor: new AlwaysStoppedAnimation<Color>(
@@ -69,7 +70,7 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
                           subtitle: Text(
                             "Distancia: ${appState.distance}\nDuración: ${appState.duration}",
                           )),
-                  !appState.isLoadingPrices
+                  appState.isLoadingPrices
                       ? Container()
                       : ListTile(
                           subtitle: ButtonTheme(
@@ -86,7 +87,15 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
                               },
                             ),
                           ),
+                        ),
+                  !appState.originIsInsideCircle ||
+                          !appState.destinationIsInsideCircle
+                      ? Text(
+                          'El precio ha incrementado debido a ser un viaje foráneo.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey),
                         )
+                      : Container(),
                 ],
               ));
         });
@@ -147,26 +156,35 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
 
     for (var driver in drivers.documents) {
       if (driver['currentLocation'] != null) {
-        if (driver['phone'] != userPhone && driver['isActive']) {
-          //Set Driver LatLng
-          LatLng driverLatLng = LatLng(driver['currentLocation'].latitude,
-              driver['currentLocation'].longitude);
+        if (driver['isActive'] && driver['isAccepted']) {
+          if (driver['phone'] != userPhone) {
+            if (driver['tripID'] != null) {
+              if (!driver['tripID']['serviceAccepted']) {
+                //Set Driver LatLng
+                LatLng driverLatLng = LatLng(driver['currentLocation'].latitude,
+                    driver['currentLocation'].longitude);
 
-          //Set User LatLng
-          LatLng userLatLng = LatLng(origin.latitude, origin.longitude);
+                //Set User LatLng
+                LatLng userLatLng = LatLng(origin.latitude, origin.longitude);
 
-          //Get the distance between those two Points
-          var distance = await _googleMapsServices.getDistanceValue(
-              driverLatLng, userLatLng);
+                //Get the distance between those two Points
+                var distance = await _googleMapsServices.getDistanceValue(
+                    driverLatLng, userLatLng);
 
-          //Create an array with the list
-          driversList.add({'distance': distance, 'driver': driver['phone']});
+                //Create an array with the list
+                driversList
+                    .add({'distance': distance, 'driver': driver['phone']});
 
-          //Sort the list so the nearest drivers are the firsts
-          driversList.sort((a, b) => a['distance'].compareTo(b['distance']));
+                //Sort the list so the nearest drivers are the firsts
+                driversList
+                    .sort((a, b) => a['distance'].compareTo(b['distance']));
 
-          //Equal the List to global list
-          sortedDriversList = driversList;
+                //Equal the List to global list
+                sortedDriversList = driversList;
+                print(driversList);
+              }
+            }
+          }
         }
       }
     }
@@ -198,7 +216,12 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
   Future _removeClosestDriverIfNotAccepted(
       AppState appState, List drivers) async {
     List clone = []..addAll(drivers);
-    if (appState.isAskingService && !appState.serviceAccepted)
+    if (appState.isAskingService && !appState.serviceAccepted) {
+      await _updateFirestoreData(appState, clone, true);
+      if (clone.length == 0) {
+        Navigator.of(context).pop();
+        _showNotDriversAvailable(context);
+      }
       for (var driver in drivers) {
         await Future.delayed(Duration(seconds: 11));
 
@@ -223,6 +246,7 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
           break;
         }
       }
+    }
   }
 
   void _showNotDriversAvailable(BuildContext context) {
@@ -256,6 +280,7 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
   }
 
   Future _handlePressed(appState) async {
+    sortedDriversList = [];
     //Show Loading Dialog
     _showSearchingDriversDialog(appState.phone, appState);
 
@@ -265,8 +290,8 @@ class _UserRequestFooterState extends State<UserRequestFooter> {
     //Get an ordered list of the drivers position
     await _getClosestDriversList(appState.origin, appState.phone);
 
-    //Save that data to firebase
-    await _updateFirestoreData(appState, sortedDriversList, true);
+    // //Save that data to firebase
+    // await _updateFirestoreData(appState, sortedDriversList, true);
 
     //Create the algorithm
     await _removeClosestDriverIfNotAccepted(appState, sortedDriversList);

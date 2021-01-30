@@ -20,7 +20,7 @@ class _UserMapState extends State<UserMap> {
     super.initState();
     Future.delayed(Duration.zero, () async {
       Provider.of<AppState>(context).getCarMarker(context);
-      Provider.of<AppState>(context).getDataIfUserExitsTheApp();
+      Provider.of<AppState>(context).getUserDataInCaseUserExitsTheApp();
     });
   }
 
@@ -51,7 +51,6 @@ class _UserMapState extends State<UserMap> {
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (!snapshot.hasData) return Container();
-
               appState.handleStream(snapshot, context);
 
               return Stack(children: <Widget>[
@@ -70,7 +69,7 @@ class _UserMapState extends State<UserMap> {
                 appState.destinationController.text.isEmpty &&
                         !appState.serviceAccepted
                     ? AutoCompleteInput()
-                    : !appState.serviceAccepted
+                    : !appState.serviceAccepted && !appState.serviceFinished
                         ? UserRequestFooter()
                         : UserAcceptedFooter(),
                 Positioned(

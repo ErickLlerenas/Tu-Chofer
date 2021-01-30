@@ -166,7 +166,7 @@ class _DriverRequestScreen1State extends State<DriverRequestScreen1> {
                             MaterialPageRoute(
                                 builder: (context) => DriverRequestScreen2()));
                       } else {
-                        appState.imageAlert(
+                        appState.showImageAlertDialog(
                             context, "Necesitas una foto de perfil.");
                       }
                     }

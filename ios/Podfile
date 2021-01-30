@@ -40,5 +40,3 @@ post_install do |installer|
   end
 end
 pod 'Firebase/Auth'
-
-source 'https://github.com/CocoaPods/Specs.git'

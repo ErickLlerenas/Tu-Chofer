@@ -1,25 +1,28 @@
 import 'dart:async';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
+import 'package:percent_indicator/percent_indicator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+const apiKey = "AIzaSyB6TIHbzMpZYQs8VwYMuUZaMuk4VaKudeY";
 
 class DriverRequestFooter extends StatefulWidget {
-  final String origin;
-  final String destination;
-  final int price;
-  final String distance;
-  final String duration;
   final String phone;
   final Function acceptService;
-  final Function disposeUserService;
+  final Function closeAlert;
+  final Function openAlert;
+  final LatLng userOrigin;
+  final LatLng driverOrigin;
+
   DriverRequestFooter(
-      {this.origin,
-      this.destination,
-      this.price,
-      this.distance,
-      this.duration,
-      this.phone,
+      {this.phone,
       this.acceptService,
-      this.disposeUserService});
+      this.openAlert,
+      this.closeAlert,
+      this.userOrigin,
+      this.driverOrigin});
   @override
   _DriverRequestFooterState createState() => _DriverRequestFooterState();
 }
@@ -28,9 +31,35 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
   Timer _timer;
   int _time = 10;
   final assetsAudioPlayer = AssetsAudioPlayer();
+  Color color = Colors.white;
+  double margin = 20;
+  bool hackAlert = false;
+  double heigth = 2.4;
+  Map answer;
+
+  void animateAlert() {
+    hackAlert = !hackAlert;
+    setState(() {
+      if (hackAlert) {
+        margin = 15;
+        heigth = 2.3;
+        color = Colors.white70;
+      } else {
+        margin = 20;
+        heigth = 2.4;
+        color = Colors.white;
+      }
+    });
+  }
 
   @override
   void initState() {
+    widget.openAlert();
+    Future.delayed(Duration(seconds: 0), () async {
+      answer = await getRouteDistanceAndDuration(
+          widget.driverOrigin, widget.userOrigin);
+    });
+
     startTimer();
     playSound();
     super.initState();
@@ -46,6 +75,7 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
 
   @override
   void dispose() {
+    widget.closeAlert();
     _timer.cancel();
     stopSound();
     super.dispose();
@@ -57,9 +87,11 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
       oneSec,
       (Timer timer) => setState(
         () {
+          animateAlert();
+
           if (_time < 1) {
+            widget.closeAlert();
             timer.cancel();
-            widget.disposeUserService();
           } else {
             _time = _time - 1;
           }
@@ -68,96 +100,89 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
     );
   }
 
+  Future<Map> getRouteDistanceAndDuration(LatLng l1, LatLng l2) async {
+    String url =
+        "https://maps.googleapis.com/maps/api/directions/json?origin=${l1.latitude},${l1.longitude}&destination=${l2.latitude},${l2.longitude}&key=$apiKey";
+    http.Response response = await http.get(url);
+    Map values = jsonDecode(response.body);
+
+    Map answer = {
+      'route': values["routes"][0]["overview_polyline"]["points"],
+      'distanceText': values["routes"][0]["legs"][0]["distance"]["text"],
+      'durationText': values["routes"][0]["legs"][0]["duration"]["text"],
+      'distanceValue': values["routes"][0]["legs"][0]["distance"]["value"],
+      'durationValue': values["routes"][0]["legs"][0]["duration"]["value"]
+    };
+    return answer;
+  }
+
   @override
   Widget build(BuildContext context) {
     return _time == 0
         ? Container()
-        : DraggableScrollableSheet(
-            maxChildSize: 0.7,
-            initialChildSize: 0.7,
-            minChildSize: 0.7,
-            builder: (context, controller) {
-              return Container(
+        : Center(
+            child: InkWell(
+              onTap: () {
+                stopSound();
+                setState(() {
+                  _time = 0;
+                  if (answer['route'] != null)
+                    widget.acceptService(answer['route'], Colors.blue);
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
                   color: Colors.white,
-                  child: ListView(
+                ),
+                child: AnimatedContainer(
+                  margin: EdgeInsets.all(margin),
+                  width: MediaQuery.of(context).size.height / 3,
+                  height: MediaQuery.of(context).size.height / 3,
+                  curve: Curves.bounceOut,
+                  duration: Duration(milliseconds: 900),
+                  child: Container(
+                      child: ListView(
                     children: <Widget>[
                       Text(
-                        '¡Viaje encontrado!',
+                        '¿Aceptar viaje?',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 24,
-                            color: Colors.grey[700],
+                            color: Colors.grey,
                             fontWeight: FontWeight.bold),
                       ),
-                      Text(
-                        '$_time',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 40,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.bold),
-                      ),
-                      ListTile(
-                        leading:
-                            Icon(Icons.location_on, color: Colors.blue[400]),
-                        title: Text("Origen"),
-                        subtitle: Text('${widget.origin}'),
-                      ),
-                      ListTile(
-                        leading:
-                            Icon(Icons.location_on, color: Colors.red[400]),
-                        title: Text("Destino"),
-                        subtitle: Text('${widget.destination}'),
-                      ),
-                      ListTile(
-                        leading: Icon(
-                          Icons.attach_money,
-                          color: Colors.teal[400],
+                      SizedBox(height: 20),
+                      CircularPercentIndicator(
+                        radius: 100.0,
+                        lineWidth: 5.0,
+                        percent: _time / 10,
+                        center: Text(
+                          '$_time',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 40,
+                              color: Colors.orange[300],
+                              fontWeight: FontWeight.bold),
                         ),
-                        title: Text("Costo"),
-                        subtitle: Text(
-                          "\$${widget.price} pesos",
-                        ),
+                        progressColor: Colors.orange[300],
                       ),
-                      ListTile(
-                          leading: Icon(
-                            Icons.local_taxi,
-                            color: Colors.orange,
-                          ),
-                          title: Text("Distancia"),
-                          subtitle: Text(
-                            "${widget.distance}",
-                          )),
-                      ListTile(
-                        leading: Icon(
-                          Icons.timer,
-                          color: Colors.pink,
-                        ),
-                        title: Text("Duración"),
-                        subtitle: Text(
-                          "${widget.duration}",
-                        ),
-                      ),
-                      ListTile(
-                          title: ButtonTheme(
-                        height: 50,
-                        child: FlatButton(
-                          color: Colors.orange,
-                          child: Text(
-                            'Aceptar',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () {
-                            stopSound();
-                            setState(() {
-                              _time = 0;
-                              widget.acceptService();
-                            });
-                          },
-                        ),
-                      ))
+                      SizedBox(height: 20),
+                      answer != null
+                          ? Text(
+                              'Estás a ${(answer['durationValue'] / 60).toInt()} minutos',
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 20),
+                              textAlign: TextAlign.center)
+                          : Text('Calculando...',
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 20),
+                              textAlign: TextAlign.center)
                     ],
-                  ));
-            });
+                  )),
+                ),
+              ),
+            ),
+          );
   }
 }

@@ -41,7 +41,7 @@ class _DriverStartedFooterState extends State<DriverStartedFooter> {
                 children: <Widget>[
                   Icon(Icons.drag_handle, color: Colors.white),
                   Text(
-                    "Servicio iniciado",
+                    "Cliente a bordo",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 20,
@@ -79,16 +79,16 @@ class _DriverStartedFooterState extends State<DriverStartedFooter> {
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.timer,
-                      color: Colors.pink,
-                    ),
-                    title: Text(
-                      "${widget.duration}",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+                  // ListTile(
+                  //   leading: Icon(
+                  //     Icons.timer,
+                  //     color: Colors.pink,
+                  //   ),
+                  //   title: Text(
+                  //     "${widget.duration}",
+                  //     style: TextStyle(color: Colors.white),
+                  //   ),
+                  // ),
                   ListTile(
                     leading: InkWell(
                       onTap: () async {

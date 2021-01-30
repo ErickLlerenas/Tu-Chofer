@@ -23,6 +23,7 @@ class LoginState with ChangeNotifier {
   bool validName = true;
   bool validPhone = true;
   bool isLoading = false;
+
   StreamController<ErrorAnimationType> errorController =
       StreamController<ErrorAnimationType>();
 
@@ -37,8 +38,6 @@ class LoginState with ChangeNotifier {
     getUserName();
   }
 
-  //GETS THE PHONE NUMBER
-  //CHECKS IF THERE IS A PHONE NUMBER ALREADY REGISTERED, SO THE USER SHOULDN'T LOGIN AGAIN
   Future getPhoneNumber() async {
     _phone = await readPhoneNumber();
     if (_phone.length == 0)
@@ -48,41 +47,24 @@ class LoginState with ChangeNotifier {
     notifyListeners();
   }
 
-  //GETS THE USER NAME
   Future getUserName() async {
     _name = await readName();
     notifyListeners();
   }
 
-  // LOGINS THE USER WITH FIREBASE PHONE VERIFICATION
   Future loginUser(String phone, BuildContext context) async {
     isLoading = true;
-    notifyListeners();
     auth = FirebaseAuth.instance;
     auth.setLanguageCode('es');
-    auth.verifyPhoneNumber(
+    await auth.verifyPhoneNumber(
         phoneNumber: "+52$phone",
         timeout: const Duration(seconds: 60),
         verificationCompleted: (AuthCredential credential) async {
           AuthResult result = await auth.signInWithCredential(credential);
           if (result.user != null) {
-            Navigator.pop(context);
-            Navigator.pop(context);
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => EnableLocation()));
-            writePhone(phoneController.text.trim());
-            writeName(nameController.text);
-            isLoading = false;
+            getCodeSentWhenAutoComplete(credential);
             await saveUserToFirebase(
-                phoneController.text.trim(), nameController.text);
-            notifyListeners();
-
-            // IF GETS THE SMS CODE AUTOMATICALLY ,AUTO COMPLETE THE CODE ON VERIFY CODE SCREEN
-            String credencial = credential.toString().replaceRange(0, 12, '');
-            credencial = credencial.substring(0, credencial.length - 1);
-            Map mapa = json.decode(credencial);
-            codeController.text = mapa['zzb'];
-            notifyListeners();
+                phoneController.text.trim(), nameController.text, context);
           }
         },
         verificationFailed: (AuthException exception) {
@@ -94,7 +76,6 @@ class LoginState with ChangeNotifier {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => VerificationCode()));
           isLoading = false;
-          notifyListeners();
         },
         codeAutoRetrievalTimeout: (String id) {
           verificationID = id;
@@ -102,8 +83,8 @@ class LoginState with ChangeNotifier {
     notifyListeners();
   }
 
-  // SAVE THE USER TO FIREBASE
-  Future saveUserToFirebase(String id, String name) async {
+  Future saveUserToFirebase(
+      String id, String name, BuildContext context) async {
     await Firestore.instance
         .collection('Users')
         .document(id)
@@ -121,13 +102,36 @@ class LoginState with ChangeNotifier {
               'name': 'Tu Chofer'
             }
           ]
+        }).then((value) {
+          writePhone(phoneController.text.trim());
+          writeName(nameController.text);
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => EnableLocation()));
+          isLoading = false;
         });
-        notifyListeners();
+      } else {
+        writePhone(phoneController.text.trim());
+        writeName(nameController.text);
+        Navigator.pop(context);
+        Navigator.pop(context);
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => EnableLocation()));
+        isLoading = false;
       }
     });
+    notifyListeners();
   }
 
-  // VERIFYS THE CODE NUMBER SENT
+  void getCodeSentWhenAutoComplete(credential) {
+    String credencial = credential.toString().replaceRange(0, 12, '');
+    credencial = credencial.substring(0, credencial.length - 1);
+    Map mapa = json.decode(credencial);
+    codeController.text = mapa['zzb'];
+    notifyListeners();
+  }
+
   Future verifyCode(String code, BuildContext context) async {
     try {
       AuthCredential credential = PhoneAuthProvider.getCredential(
@@ -136,14 +140,8 @@ class LoginState with ChangeNotifier {
       FirebaseUser user = result.user;
 
       if (user != null) {
-        Navigator.pop(context);
-        Navigator.pop(context);
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => EnableLocation()));
-        writePhone(phoneController.text.trim());
-        writeName(nameController.text);
         await saveUserToFirebase(
-            phoneController.text.trim(), nameController.text);
+            phoneController.text.trim(), nameController.text, context);
       }
     } catch (error) {
       errorController.add(ErrorAnimationType.shake);
@@ -160,25 +158,21 @@ class LoginState with ChangeNotifier {
     notifyListeners();
   }
 
-  // GET THE LOCAL PATH TO SAVE THE PHONE NUMBER
   Future<String> get _localPathNumber async {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
 
-  //GET THE LOCAL PATH WITH FILE TO SAVE THE PHONE NUMBER
   Future<File> get _localFileNumber async {
     final path = await _localPathNumber;
     return File('$path/login_number.txt');
   }
 
-  // WRITE THE PHONE NUMBER TO THE FILE
   Future<File> writePhone(String phoneNumber) async {
     final file = await _localFileNumber;
     return file.writeAsString('$phoneNumber');
   }
 
-  // READ THE PHONE NUMBER FROM THE FILE
   Future<String> readPhoneNumber() async {
     try {
       final file = await _localFileNumber;
@@ -188,25 +182,21 @@ class LoginState with ChangeNotifier {
     }
   }
 
-  // GET THE LOCAL PATH TO SAVE THE USER NAME
   Future<String> get _localPathName async {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
 
-  //GET THE LOCAL PATH WITH FILE TO SAVE THE USER NAME
   Future<File> get _localFileName async {
     final path = await _localPathName;
     return File('$path/login_name.txt');
   }
 
-  // WRITE THE USER NAME TO THE FILE
   Future<File> writeName(String userName) async {
     final file = await _localFileName;
     return file.writeAsString('$userName');
   }
 
-  // READ THE USER NAME FROM THE FILE
   Future<String> readName() async {
     try {
       final file = await _localFileName;
@@ -215,6 +205,4 @@ class LoginState with ChangeNotifier {
       return "";
     }
   }
-
-  notifyListeners();
 }

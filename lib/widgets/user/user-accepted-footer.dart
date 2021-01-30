@@ -27,7 +27,9 @@ class _UserAcceptedFooterState extends State<UserAcceptedFooter> {
                 children: <Widget>[
                   Icon(Icons.drag_handle, color: Colors.grey[800]),
                   Text(
-                    !appState.serviceStarted
+                    !appState.serviceStarted &&
+                            appState.serviceAccepted &&
+                            !appState.serviceFinished
                         ? "Tu Chofer está en camino.."
                         : appState.serviceFinished
                             ? "Servicio finalizado"
@@ -51,19 +53,18 @@ class _UserAcceptedFooterState extends State<UserAcceptedFooter> {
                     },
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(200),
-                      child: Image.network(
-                          appState.driverImage != null
-                              ? appState.driverImage
-                              : '',
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent loadingProgress) {
-                        if (loadingProgress == null) return child;
+                      child: appState.driverImage != null
+                          ? Image.network(appState.driverImage, loadingBuilder:
+                              (BuildContext context, Widget child,
+                                  ImageChunkEvent loadingProgress) {
+                              if (loadingProgress == null) return child;
 
-                        return CircularProgressIndicator(
-                          valueColor:
-                              new AlwaysStoppedAnimation<Color>(Colors.orange),
-                        );
-                      }, height: 50, width: 50, fit: BoxFit.cover),
+                              return CircularProgressIndicator(
+                                valueColor: new AlwaysStoppedAnimation<Color>(
+                                    Colors.orange),
+                              );
+                            }, height: 50, width: 50, fit: BoxFit.cover)
+                          : Container(),
                     ),
                     title: Text("Tu Chofer"),
                     subtitle: Text(
@@ -84,18 +85,18 @@ class _UserAcceptedFooterState extends State<UserAcceptedFooter> {
                     },
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(200),
-                      child: Image.network(
-                          appState.driverCarImage != null
-                              ? appState.driverCarImage
-                              : '',
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return CircularProgressIndicator(
-                          valueColor:
-                              new AlwaysStoppedAnimation<Color>(Colors.orange),
-                        );
-                      }, height: 50, width: 50, fit: BoxFit.cover),
+                      child: appState.driverCarImage != null
+                          ? Image.network(appState.driverCarImage,
+                              loadingBuilder: (BuildContext context,
+                                  Widget child,
+                                  ImageChunkEvent loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return CircularProgressIndicator(
+                                valueColor: new AlwaysStoppedAnimation<Color>(
+                                    Colors.orange),
+                              );
+                            }, height: 50, width: 50, fit: BoxFit.cover)
+                          : Container(),
                     ),
                     title: Text("Coche"),
                     subtitle: Text(
@@ -104,45 +105,46 @@ class _UserAcceptedFooterState extends State<UserAcceptedFooter> {
                   ),
                   SizedBox(height: 20),
                   ListTile(
-                    subtitle: !appState.serviceStarted
-                        ? ButtonTheme(
-                            height: 45,
-                            minWidth: 100,
-                            child: FlatButton(
-                              color: Colors.red[800],
-                              child: Text(
-                                'Cancelar servicio',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: () {
-                                _showCancelServiceDialog(appState);
-                              },
-                            ),
-                          )
-                        : appState.serviceFinished
+                    subtitle:
+                        !appState.serviceStarted && !appState.serviceFinished
                             ? ButtonTheme(
                                 height: 45,
                                 minWidth: 100,
                                 child: FlatButton(
-                                  color: Colors.orange,
+                                  color: Colors.red[800],
                                   child: Text(
-                                    'Realizar pago',
+                                    'Cancelar servicio',
                                     style: TextStyle(color: Colors.white),
                                   ),
-                                  onPressed: () async {
-                                    Navigator.pop(context);
-
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                UserHistory()));
-                                    //canceling the service because is the same as if I implement a finish service
-                                    appState.cancelService();
+                                  onPressed: () {
+                                    _showCancelServiceDialog(appState);
                                   },
                                 ),
                               )
-                            : Container(),
+                            : appState.serviceFinished
+                                ? ButtonTheme(
+                                    height: 45,
+                                    minWidth: 100,
+                                    child: FlatButton(
+                                      color: Colors.orange,
+                                      child: Text(
+                                        'Realizar pago',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      onPressed: () async {
+                                        Navigator.pop(context);
+
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    UserHistory()));
+                                        //canceling the service because is the same as if I implement a finish service
+                                        appState.cancelService();
+                                      },
+                                    ),
+                                  )
+                                : Container(),
                   )
                 ],
               ));

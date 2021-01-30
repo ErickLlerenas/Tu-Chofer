@@ -22,7 +22,7 @@ class _HomeState extends State<Home> {
                 ? Container()
                 : FloatingActionButton(
                     onPressed: () {
-                      appState.getCurrentLocation();
+                      appState.getCurrentLocationAndAnimateCamera();
                     },
                     backgroundColor: Colors.white,
                     child: Icon(Icons.my_location, color: Colors.grey[700])),

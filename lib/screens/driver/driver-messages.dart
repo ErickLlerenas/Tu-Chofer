@@ -16,8 +16,9 @@ class _DriverMessagesState extends State<DriverMessages> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    _scrollController.animateTo(0.0,
-        curve: Curves.easeOut, duration: const Duration(milliseconds: 300));
+    if (_scrollController.hasClients)
+      _scrollController.animateTo(0.0,
+          curve: Curves.easeOut, duration: const Duration(milliseconds: 300));
 
     return Scaffold(
         backgroundColor: Colors.grey[100],

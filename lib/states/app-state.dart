@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:chofer/screens/driver/driver-request-pending.dart';
+import 'package:chofer/widgets/map/mapStyle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
@@ -21,6 +23,7 @@ class AppState with ChangeNotifier {
   Set<Marker> _markers = Set<Marker>();
   Set<Polyline> _polyLines;
   GoogleMapController _mapController;
+  MapStyle mapStyle = MapStyle();
   GoogleMapsServices _googleMapsServices = GoogleMapsServices();
   TextEditingController locationController = TextEditingController();
   TextEditingController destinationController = TextEditingController();
@@ -30,13 +33,17 @@ class AppState with ChangeNotifier {
   GoogleMapController get mapController => _mapController;
   Set<Marker> get markers => _markers;
   Set<Polyline> get polyLines => _polyLines;
+  Set<Circle> circles;
+  LatLng colima = LatLng(19.2429246, -103.7312651);
   LatLng destination;
   LatLng origin;
   String distance;
   String duration;
   int distanceValue;
   int durationValue;
-  bool isLoadingPrices;
+  String route;
+
+  bool isLoadingPrices = false;
   List driverHistory = [];
   List userMessages = [];
   List driverMessages = [];
@@ -46,6 +53,8 @@ class AppState with ChangeNotifier {
   String _phone;
   String _name;
   String tempName;
+  bool originIsInsideCircle = true;
+  bool destinationIsInsideCircle = true;
   bool validName = true;
   bool validAddres = true;
   bool validCarName = true;
@@ -70,7 +79,7 @@ class AppState with ChangeNotifier {
   TextEditingController carNameController;
   TextEditingController carModelController;
   TextEditingController carPlatesController;
-  String _locality;
+  // String _locality;
   final picker = ImagePicker();
   int costoServicio;
   int costoBase;
@@ -91,28 +100,27 @@ class AppState with ChangeNotifier {
   get name => _name;
 
   AppState() {
-    _hasAlreadyPermissionsAndService();
+    _checkIfUserHasPermissionGrantedAndServiceEnabled();
     getPhoneNumber();
     getUserName();
   }
-  // GETS THE USER PHONE NUMBER
+
   Future getPhoneNumber() async {
     _phone = await _readPhoneNumber();
     if (_phone.isNotEmpty) {
-      _downloadProfilePicture(_phone);
+      _getDownloadProfilePictureURL(_phone);
       _checkIfIsDriver(_phone);
     }
     notifyListeners();
   }
 
-  //GETS THE USER NAME
   Future getUserName() async {
     _name = await readName();
     tempName = _name;
     notifyListeners();
   }
 
-  Future _getActualPrices() async {
+  Future _getCurrentServicePricing() async {
     await Firestore.instance
         .collection('Prices')
         .document('actualPrices')
@@ -126,7 +134,105 @@ class AppState with ChangeNotifier {
     });
   }
 
-  //  TO GET THE USERS LOCATION
+  Future _getDestinationLatLng(intendedLocation) async {
+    List<Placemark> placemark =
+        await Geolocator().placemarkFromAddress(intendedLocation);
+    double latitude = placemark[0].position.latitude;
+    double longitude = placemark[0].position.longitude;
+    destination = LatLng(latitude, longitude);
+    notifyListeners();
+  }
+
+  Future _getRouteDistanceAndDurationValues() async {
+    Map answer = await _googleMapsServices.getRouteDistanceAndDuration(
+        origin, destination);
+
+    route = answer['route'];
+    distance = answer['distanceText'];
+    duration = answer['durationText'];
+    distanceValue = answer['distanceValue'];
+    durationValue = answer['durationValue'];
+    notifyListeners();
+  }
+
+  Future _calculatePricing() async {
+    if (distanceValue > 3000) {
+      bool isInsideCircle = await _checkIfUserIsInsideCircle();
+      if (!isInsideCircle) {
+        costoMinuto = 10;
+      }
+
+      costoServicio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
+              costoBase +
+              (durationValue / 60 * costoMinuto))
+          .toInt();
+
+      String lastNumber =
+          costoServicio.toString()[costoServicio.toString().length - 1];
+      switch (int.parse(lastNumber)) {
+        case 1:
+          costoServicio += 4;
+          break;
+        case 2:
+          costoServicio += 3;
+          break;
+        case 3:
+          costoServicio += 2;
+          break;
+        case 5:
+          costoServicio += 0;
+          break;
+        case 6:
+          costoServicio += 4;
+          break;
+        case 7:
+          costoServicio += 3;
+          break;
+        case 8:
+          costoServicio += 2;
+          break;
+        case 9:
+          costoServicio += 1;
+          break;
+        default:
+          break;
+      }
+    }
+    notifyListeners();
+  }
+
+  Future<bool> _checkIfUserIsInsideCircle() async {
+    var originX = pow(origin.latitude.abs() - colima.latitude.abs(), 2);
+    var originY = pow(origin.longitude.abs() - colima.longitude.abs(), 2);
+
+    var destinationX =
+        pow(destination.latitude.abs() - colima.latitude.abs(), 2);
+    var destinationY =
+        pow(destination.longitude.abs() - colima.longitude.abs(), 2);
+
+    if (sqrt(originX + originY) > 0.06323688276393781) {
+      originIsInsideCircle = false;
+    } else {
+      originIsInsideCircle = true;
+    }
+
+    if (sqrt(destinationX + destinationY) > 0.06323688276393781) {
+      print("DESTINO ESTÁ FUERA DEL CÍRCULO");
+
+      destinationIsInsideCircle = false;
+    } else {
+      print("DESTINO ESTÁ DENTRO DEL CÍRCULO");
+      print(sqrt(destinationX + destinationY));
+      destinationIsInsideCircle = true;
+    }
+    notifyListeners();
+    if (originIsInsideCircle && destinationIsInsideCircle) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   void getUserLocation() async {
     try {
       Position position = await Geolocator()
@@ -149,7 +255,6 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  //  TO CREATE ROUTE
   void _createRoute(String encondedPoly) {
     _polyLines = Set<Polyline>();
     _polyLines.add(Polyline(
@@ -160,7 +265,6 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  //  ADD A MARKER ON THE MAP
   void _addMarker(LatLng location, String address) {
     _markers = Set<Marker>();
     _markers.add(Marker(
@@ -171,7 +275,16 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  //  CREATE LAGLNG LIST
+  void _addCircle() {
+    circles = Set<Circle>();
+    circles.add(Circle(
+        circleId: CircleId(Uuid().v1()),
+        center: colima,
+        radius: 6925,
+        strokeWidth: 3,
+        strokeColor: Colors.orange));
+  }
+
   List<LatLng> _convertToLatLng(List points) {
     List<LatLng> result = <LatLng>[];
     for (int i = 0; i < points.length; i++) {
@@ -182,10 +295,10 @@ class AppState with ChangeNotifier {
     return result;
   }
 
-  // DECODE POLY (THIS FUNCTION IS PROVIDED BY GOOGLE) DON'T CHANGE IT
+  //THIS FUNCTION IS PROVIDED BY GOOGLE, DON'T CHANGE IT!!
   List _decodePoly(String poly) {
     var list = poly.codeUnits;
-    var lList = new List();
+    var lList = [];
     int index = 0;
     int len = poly.length;
     int c = 0;
@@ -211,118 +324,55 @@ class AppState with ChangeNotifier {
     return lList;
   }
 
-  //  SEND REQUEST
-  void sendRequest(String intendedLocation) async {
-    isLoadingPrices = false;
-    await _getActualPrices();
-    origin = _initialPosition;
-    List<Placemark> placemark =
-        await Geolocator().placemarkFromAddress(intendedLocation);
-    double latitude = placemark[0].position.latitude;
-    double longitude = placemark[0].position.longitude;
-    destination = LatLng(latitude, longitude);
-    _addMarker(destination, intendedLocation);
-    String route = await _googleMapsServices.getRouteCoordinates(
-        _initialPosition, destination);
-    distance =
-        await _googleMapsServices.getDistance(_initialPosition, destination);
-    duration =
-        await _googleMapsServices.getDuration(_initialPosition, destination);
-    durationValue = await _googleMapsServices.getDurationValue(
-        _initialPosition, destination);
-    distanceValue = await _googleMapsServices.getDistanceValue(
-        _initialPosition, destination);
-
-    if (distanceValue > 3000) {
-      _locality = placemark[0].locality;
-      if (_locality == "Comala") {
-        costoBase += 10;
-      }
-      costoServicio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
-              costoBase +
-              (durationValue / 60 * costoMinuto))
-          .toInt();
-    }
+  void sendRequest(String intendedLocation, context) async {
     isLoadingPrices = true;
+    destinationController.text = intendedLocation;
+    origin = _initialPosition;
+    await _getCurrentServicePricing();
+    await _getDestinationLatLng(intendedLocation);
+    await _getRouteDistanceAndDurationValues();
+    _addMarker(destination, intendedLocation);
+    _calculatePricing();
     _createRoute(route);
+    isLoadingPrices = false;
     notifyListeners();
   }
 
-  //  ON CAMERA MOVE
   void onCameraMove(CameraPosition position) {
     _lastPosition = position.target;
     notifyListeners();
   }
 
-  //  ON MAP CREATED
   void onMapCreated(GoogleMapController controller) {
     _mapController = controller;
-    String _mapStyle =
-        '[ { "featureType": "all", "elementType": "labels.text.fill", "stylers": [ { "color": "#7c93a3" }, { "lightness": "-10" } ] }, { "featureType": "administrative.country", "elementType": "geometry", "stylers": [ { "visibility": "on" } ] }, { "featureType": "administrative.country", "elementType": "geometry.stroke", "stylers": [ { "color": "#a0a4a5" } ] }, { "featureType": "administrative.province", "elementType": "geometry.stroke", "stylers": [ { "color": "#62838e" } ] }, { "featureType": "landscape", "elementType": "geometry.fill", "stylers": [ { "color": "#dde3e3" } ] }, { "featureType": "landscape.man_made", "elementType": "geometry.stroke", "stylers": [ { "color": "#3f4a51" }, { "weight": "0.30" } ] }, { "featureType": "poi", "elementType": "all", "stylers": [ { "visibility": "simplified" } ] }, { "featureType": "poi.attraction", "elementType": "all", "stylers": [ { "visibility": "on" } ] }, { "featureType": "poi.business", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.government", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.park", "elementType": "all", "stylers": [ { "visibility": "on" } ] }, { "featureType": "poi.place_of_worship", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.school", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "poi.sports_complex", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "road", "elementType": "all", "stylers": [ { "saturation": "-100" }, { "visibility": "on" } ] }, { "featureType": "road", "elementType": "geometry.stroke", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [ { "color": "#bbcacf" } ] }, { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [ { "lightness": "0" }, { "color": "#bbcacf" }, { "weight": "0.50" } ] }, { "featureType": "road.highway", "elementType": "labels", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway", "elementType": "labels.text", "stylers": [ { "visibility": "on" } ] }, { "featureType": "road.highway.controlled_access", "elementType": "geometry.fill", "stylers": [ { "color": "#ffffff" } ] }, { "featureType": "road.highway.controlled_access", "elementType": "geometry.stroke", "stylers": [ { "color": "#a9b4b8" } ] }, { "featureType": "road.arterial", "elementType": "labels.icon", "stylers": [ { "invert_lightness": true }, { "saturation": "-7" }, { "lightness": "3" }, { "gamma": "1.80" }, { "weight": "0.01" } ] }, { "featureType": "transit", "elementType": "all", "stylers": [ { "visibility": "off" } ] }, { "featureType": "water", "elementType": "geometry.fill", "stylers": [ { "color": "#a3c7df" } ] } ]';
-    _mapController.setMapStyle(_mapStyle);
+    _mapController.setMapStyle(mapStyle.getMapStyle());
     notifyListeners();
   }
 
-  // CHANGES THE ORIGIN OF THE ROUTE
-  void changeOrigin(LatLng origen) async {
-    origin = origen;
-    isLoadingPrices = false;
-    await _getActualPrices();
-    List<Placemark> placemark =
-        await Geolocator().placemarkFromAddress(destinationController.text);
-    String route =
-        await _googleMapsServices.getRouteCoordinates(origen, destination);
-    _createRoute(route);
-    distance = await _googleMapsServices.getDistance(origen, destination);
-    duration = await _googleMapsServices.getDuration(origen, destination);
-    durationValue =
-        await _googleMapsServices.getDurationValue(origen, destination);
-    distanceValue =
-        await _googleMapsServices.getDistanceValue(origen, destination);
-    if (distanceValue > 3000) {
-      _locality = placemark[0].locality;
-      if (_locality == "Comala") {
-        costoBase += 10;
-      }
-      costoServicio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
-              costoBase +
-              (durationValue / 60 * costoMinuto))
-          .toInt();
-    }
+  void changeOrigin(LatLng newOrigin) async {
     isLoadingPrices = true;
-    notifyListeners();
-  }
-
-  // CHANGES THE DESTINATION OF THE ROUTE
-  void changeDestination(LatLng dest, intendedLocation) async {
-    destination = dest;
-    isLoadingPrices = false;
-    await _getActualPrices();
-    List<Placemark> placemark =
-        await Geolocator().placemarkFromAddress(intendedLocation);
-    String route = await _googleMapsServices.getRouteCoordinates(origin, dest);
+    origin = newOrigin;
+    await _getCurrentServicePricing();
+    await _getRouteDistanceAndDurationValues();
     _createRoute(route);
-    distance = await _googleMapsServices.getDistance(origin, dest);
-    duration = await _googleMapsServices.getDuration(origin, dest);
-    durationValue = await _googleMapsServices.getDurationValue(origin, dest);
-    distanceValue = await _googleMapsServices.getDistanceValue(origin, dest);
-    if (distanceValue > 3000) {
-      _locality = placemark[0].locality;
-      if (_locality == "Comala") {
-        costoBase += 10;
-      }
-      costoServicio += ((((distanceValue - 3000) / 1000) * costoKilometro) +
-              costoBase +
-              (durationValue / 60 * costoMinuto))
-          .toInt();
-    }
-    isLoadingPrices = true;
-    _addMarker(dest, intendedLocation);
+    _calculatePricing();
+    isLoadingPrices = false;
     notifyListeners();
   }
 
-  // CHECKS IF THE USER HAS PERMISSIONS AND THE LOCATION ACTIVE
-  void _hasAlreadyPermissionsAndService() async {
+  void changeDestination(LatLng newDestination, intendedLocation) async {
+    isLoadingPrices = true;
+    destination = newDestination;
+    await _getCurrentServicePricing();
+    await _getRouteDistanceAndDurationValues();
+    _addMarker(destination, intendedLocation);
+    _createRoute(route);
+    _calculatePricing();
+    isLoadingPrices = false;
+    notifyListeners();
+  }
+
+  void _checkIfUserHasPermissionGrantedAndServiceEnabled() async {
     permissionGranted = await location.hasPermission();
     if (permissionGranted == l.PermissionStatus.granted) {
       serviceEnabled = await location.serviceEnabled();
@@ -342,7 +392,7 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateCarMarker(List cars, BuildContext context) async {
+  void updateCarMarkers(List cars, BuildContext context) async {
     _markers = Set<Marker>();
 
     cars.forEach((car) {
@@ -391,63 +441,6 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // GET THE LOCAL PATH TO SAVE THE PHONE NUMBER
-  Future<String> get _localPathNumber async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  //GET THE LOCAL PATH WITH FILE TO SAVE THE PHONE NUMBER
-  Future<File> get _localFileNumber async {
-    final path = await _localPathNumber;
-    return File('$path/login_number.txt');
-  }
-
-  // WRITE THE PHONE NUMBER TO THE FILE
-  Future<File> writePhone(String phoneNumber) async {
-    final file = await _localFileNumber;
-    return file.writeAsString('$phoneNumber');
-  }
-
-  // READ THE PHONE NUMBER FROM THE FILE
-  Future<String> _readPhoneNumber() async {
-    try {
-      final file = await _localFileNumber;
-      return await file.readAsString();
-    } catch (e) {
-      return "";
-    }
-  }
-
-  // GET THE LOCAL PATH TO SAVE THE USER NAME
-  Future<String> get _localPathName async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  //GET THE LOCAL PATH WITH FILE TO SAVE THE USER NAME
-  Future<File> get _localFileName async {
-    final path = await _localPathName;
-    return File('$path/login_name.txt');
-  }
-
-  // WRITE THE USER NAME TO THE FILE
-  Future<File> writeName(String userName) async {
-    final file = await _localFileName;
-    return file.writeAsString('$userName');
-  }
-
-  // READ THE USER NAME FROM THE FILE
-  Future<String> readName() async {
-    try {
-      final file = await _localFileName;
-      return await file.readAsString();
-    } catch (e) {
-      return "";
-    }
-  }
-
-  // SAVE THE NAME TO FIREBASE
   Future saveName(String id, String newName, BuildContext context) async {
     _name = newName;
     await writeName(newName);
@@ -460,7 +453,6 @@ class AppState with ChangeNotifier {
         duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
   }
 
-  // GET THE IMAGE FROM FIREBASE
   Future getImage() async {
     final pickedFile = await picker.getImage(
         source: ImageSource.gallery,
@@ -481,8 +473,7 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  //DOWNLOADS THE IMAGE FROM FIREBASE
-  Future _downloadProfilePicture(number) async {
+  Future _getDownloadProfilePictureURL(number) async {
     try {
       await Firestore.instance
           .collection('Users')
@@ -500,7 +491,6 @@ class AppState with ChangeNotifier {
     } catch (error) {}
   }
 
-  //SAVES THE IMAGE TO FIREBASE
   Future saveUserProfilePicture(BuildContext context, String phone) async {
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child(phone);
@@ -531,7 +521,6 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  //SAVES THE IMAGE TO FIREBASE
   Future _saveDriverProfilePicture(BuildContext context, String phone) async {
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child(phone);
@@ -545,13 +534,13 @@ class AppState with ChangeNotifier {
             .document(phone)
             .updateData({'image': url});
 
-        //Save also on the users
+        //Save the user image too!!
         await Firestore.instance
             .collection('Users')
             .document(phone)
             .updateData({'image': url});
         image = null;
-        await _downloadProfilePicture(phone);
+        await _getDownloadProfilePictureURL(phone);
       }
     } else {
       await Firestore.instance
@@ -562,7 +551,7 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void _getDriverData(driver, BuildContext context) {
+  void _getDriverData(driver) {
     driverCarName = driver['carName'];
     driverCarImage = driver['car'];
     driverName = driver['name'];
@@ -580,12 +569,10 @@ class AppState with ChangeNotifier {
   }
 
   void _showLoadingPhotoDialog(context) {
-    // flutter defined function
     showDialog(
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        // return object of type Dialog
         return AlertDialog(
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -607,13 +594,11 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void _loadingDriverRequest(context) {
-    // flutter defined function
+  void _showLoadingDriverRquest(context) {
     showDialog(
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        // return object of type Dialog
         return AlertDialog(
             title: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -635,13 +620,11 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  void imageAlert(BuildContext context, String message) {
-    // flutter defined function
+  void showImageAlertDialog(BuildContext context, String message) {
     showDialog(
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        // return object of type Dialog
         return AlertDialog(
             title: Text(
               "$message",
@@ -666,8 +649,7 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // THIS IS FOR THE FLOATING ACTION BUTTON TO GET THE ACTUAL LOCATION
-  void getCurrentLocation() async {
+  void getCurrentLocationAndAnimateCamera() async {
     l.LocationData currentLocation;
     var location = new l.Location();
     try {
@@ -686,14 +668,13 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // SEND A DRIVER REQUEST TO FIREBASE
+  // Save data for next screen
   Future nextScreen(String name, String _address) async {
     address = _address;
     _name = name;
     notifyListeners();
   }
 
-  // SEND A DRIVER REQUEST TO FIREBASE
   Future saveDriverDataRequest(
       String id,
       String name,
@@ -704,7 +685,7 @@ class AppState with ChangeNotifier {
       BuildContext context) async {
     try {
       writeName(name);
-      _loadingDriverRequest(context);
+      _showLoadingDriverRquest(context);
       await Firestore.instance
           .collection('Users')
           .document(id)
@@ -745,7 +726,6 @@ class AppState with ChangeNotifier {
     } catch (error) {}
   }
 
-  //SAVES THE IMAGE TO FIREBASE
   Future _saveCarPicture(BuildContext context, String phone) async {
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child("driver" + phone);
@@ -812,36 +792,39 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  Future _getDriversCarsPositionAndCheckIfAccepted(
+  Future _checkIfDriverAccepted(
       AsyncSnapshot<QuerySnapshot> snapshot, BuildContext context) async {
-    // Gets the current position of all the drivers
-    var cars = [];
     snapshot.data.documents.forEach((DocumentSnapshot driver) {
-      if (!isAskingService) {
-        if (driver['currentLocation'] != null && driver['isActive']) {
-          cars.add({
-            'currentLocation': driver['currentLocation'],
-            'currentLocationHeading': driver['currentLocationHeading']
-          });
-        }
-        if (destinationController.text.isEmpty) {
-          updateCarMarker(cars, context);
-        }
-      }
-
-      //Checks if the driver accepted the user service
       if (isAskingService) {
         if (driver['tripID']['userID'] == phone &&
             driver['tripID']['serviceAccepted']) {
           if (runPopOnceHack == 0) {
             _hackToRunPopOnce(context);
           }
-          _getDriverData(driver, context);
+          _getDriverData(driver);
         }
       }
     });
-
     notifyListeners();
+  }
+
+  List _getDriversCarsPosition(AsyncSnapshot<QuerySnapshot> snapshot) {
+    var carsPosition = [];
+    snapshot.data.documents.forEach((DocumentSnapshot driver) {
+      if (driver['currentLocation'] != null) {
+        if (driver['isActive']) {
+          if (driver['tripID'] != null) {
+            if (!driver['tripID']['serviceAccepted']) {
+              carsPosition.add({
+                'currentLocation': driver['currentLocation'],
+                'currentLocationHeading': driver['currentLocationHeading']
+              });
+            }
+          }
+        }
+      }
+    });
+    return carsPosition;
   }
 
   Future cancelService() async {
@@ -857,85 +840,161 @@ class AppState with ChangeNotifier {
     serviceFinished = false;
     serviceStarted = false;
     isAskingService = false;
+    destinationController.text = '';
+    _polyLines = Set<Polyline>();
+    _markers = Set<Marker>();
     runPopOnceHack = 0;
+    notifyListeners();
   }
 
-  void _getDriverPositionWhenUserIsAccepted(snapshot, BuildContext context) {
-    var cars = [];
+  void _getDriverPosition(snapshot) {
+    var driverCar = [];
     snapshot.data.documents.forEach((DocumentSnapshot driver) {
       if (driver['currentLocation'] != null && driver['isActive']) {
         if (driver['phone'] == driverPhone) {
-          cars.add({
+          _getDriverData(driver);
+          driverCar.add({
             'currentLocation': driver['currentLocation'],
             'currentLocationHeading': driver['currentLocationHeading']
           });
         }
       }
-      if (destination != null && destinationController.text.isNotEmpty) {
-        _addMarker(destination, destinationController.text);
-        updateDriverCarMarker(cars, context);
-      }
     });
+    updateAcceptedDriverCarMarker(driverCar);
   }
 
-  void updateDriverCarMarker(List cars, BuildContext context) async {
-    if (isAskingService) {
-      //if user is asking service it will display the red dot and the driver on the map
-      cars.forEach((car) {
-        LatLng latlng = LatLng(
-            car['currentLocation'].latitude, car['currentLocation'].longitude);
+  void updateAcceptedDriverCarMarker(List driverCar) async {
+    LatLng latlng = LatLng(driverCar[0]['currentLocation'].latitude,
+        driverCar[0]['currentLocation'].longitude);
 
-        _markers.add(Marker(
-            markerId: MarkerId(Uuid().v1()),
-            position: latlng,
-            rotation: car['currentLocationHeading'].toDouble(),
-            draggable: false,
-            zIndex: 2,
-            flat: true,
-            anchor: Offset(0.5, 0.5),
-            icon: BitmapDescriptor.fromBytes(carMarker.buffer.asUint8List())));
+    //first add the destination marker
+    if (destination != null) {
+      _addMarker(destination, address);
+      //then add the car marker
 
-        _mapController.animateCamera(CameraUpdate.newCameraPosition(
-          CameraPosition(
-            bearing: car['currentLocationHeading'].toDouble(),
-            target: LatLng(car['currentLocation'].latitude,
-                car['currentLocation'].longitude),
-            zoom: 15.0,
-          ),
-        ));
-      });
-    } else {
-      if (destination != null && destinationController.text.isNotEmpty)
-        _addMarker(destination, destinationController.text);
     }
+    _markers.add(Marker(
+        markerId: MarkerId(Uuid().v1()),
+        position: latlng,
+        rotation: driverCar[0]['currentLocationHeading'].toDouble(),
+        draggable: false,
+        zIndex: 2,
+        flat: true,
+        anchor: Offset(0.5, 0.5),
+        icon: BitmapDescriptor.fromBytes(carMarker.buffer.asUint8List())));
 
+    _mapController.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        bearing: driverCar[0]['currentLocationHeading'].toDouble(),
+        target: LatLng(driverCar[0]['currentLocation'].latitude,
+            driverCar[0]['currentLocation'].longitude),
+        zoom: 16.0,
+      ),
+    ));
     notifyListeners();
   }
 
   void handleStream(
       AsyncSnapshot<QuerySnapshot> snapshot, BuildContext context) {
-    _getDriversCarsPositionAndCheckIfAccepted(snapshot, context);
-    _getDriverPositionWhenUserIsAccepted(snapshot, context);
+    var carsPosition = [];
+
+    //Ahorita intento sin los 5 segundos
+    Future.delayed(const Duration(milliseconds: 5000), () {
+      if (destinationController.text.isEmpty) {
+        carsPosition = _getDriversCarsPosition(snapshot);
+        updateCarMarkers(carsPosition, context);
+        _addCircle();
+      }
+    });
+    if (destinationController.text.isNotEmpty) {
+      if (isAskingService) {
+        if (!serviceAccepted) {
+          WidgetsBinding.instance.addPostFrameCallback(
+              (_) => _checkIfDriverAccepted(snapshot, context));
+        } else {
+          Future.delayed(const Duration(milliseconds: 5000), () {
+            _getDriverPosition(snapshot);
+          });
+        }
+      }
+    }
   }
 
-  Future getDataIfUserExitsTheApp() async {
+  Future getUserDataInCaseUserExitsTheApp() async {
+    _phone = await _readPhoneNumber();
     if (_phone != null) {
       if (_phone.isNotEmpty) {
         await Firestore.instance
             .collection('Users')
-            .document()
+            .document(_phone)
             .get()
-            .then((user) {
+            .then((user) async {
           if (user.exists) {
             if (user['tripID'] != null) {
-              print(user['tripID']['isAskingService']);
               isAskingService = user['tripID']['isAskingService'];
+
+              if (isAskingService &&
+                  user['tripID']['driversList'].length == 0) {
+                //This means the user is actually on service, because isAskingService with 0 list
+                //I mean, the driver already accepted
+                destinationController.text = user['trip']['destinationName'];
+                destination = LatLng(user['trip']['destination'].latitude,
+                    user['trip']['destination'].longitude);
+              }
             }
           }
         });
       }
     }
-
     notifyListeners();
+  }
+
+  // SAVE TO LOCAL FILE FUNCTIONS:
+  Future<String> get _localPathNumber async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFileNumber async {
+    final path = await _localPathNumber;
+    return File('$path/login_number.txt');
+  }
+
+  Future<File> writePhone(String newPhone) async {
+    final file = await _localFileNumber;
+    return file.writeAsString('$newPhone');
+  }
+
+  Future<String> _readPhoneNumber() async {
+    try {
+      final file = await _localFileNumber;
+      return await file.readAsString();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  Future<String> get _localPathName async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFileName async {
+    final path = await _localPathName;
+    return File('$path/login_name.txt');
+  }
+
+  Future<File> writeName(String userName) async {
+    final file = await _localFileName;
+    return file.writeAsString('$userName');
+  }
+
+  Future<String> readName() async {
+    try {
+      final file = await _localFileName;
+      return await file.readAsString();
+    } catch (e) {
+      return "";
+    }
   }
 }
