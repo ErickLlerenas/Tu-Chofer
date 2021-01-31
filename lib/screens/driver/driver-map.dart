@@ -24,7 +24,7 @@ class DriverMap extends StatefulWidget {
   _DriverMapState createState() => _DriverMapState();
 }
 
-class _DriverMapState extends State<DriverMap> {
+class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
   MapStyle mapStyle = MapStyle();
   bool driverIsActive = false;
   bool driverIsOnDriverScreen = true;
@@ -424,6 +424,7 @@ class _DriverMapState extends State<DriverMap> {
     }
     driverIsOnDriverScreen = false;
     timer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -434,7 +435,28 @@ class _DriverMapState extends State<DriverMap> {
         Timer.periodic(Duration(seconds: 5), (Timer t) => checkDriverActive());
     getDriverPhoneNumber();
     checkDriverData();
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
+  }
+
+  @override
+  didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (AppLifecycleState.paused == state ||
+        AppLifecycleState.detached == state ||
+        AppLifecycleState.inactive == state) {
+      if (driverIsActive) {
+        setState(() {
+          driverIsActive = false;
+        });
+        await Firestore.instance
+            .collection('Drivers')
+            .document(driverPhone)
+            .updateData({'isActive': false});
+
+        clearCar();
+        Wakelock.disable();
+      }
+    }
   }
 
   @override

@@ -170,7 +170,7 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
                       SizedBox(height: 20),
                       answer != null
                           ? Text(
-                              'Estás a ${(answer['durationValue'] / 60).toInt()} minutos',
+                              'Estás a ${(answer['durationValue'] / 60).toInt()} minutos\n${answer['distanceText']}',
                               style:
                                   TextStyle(color: Colors.grey, fontSize: 20),
                               textAlign: TextAlign.center)
