@@ -121,14 +121,15 @@ class _DriverRequestFooterState extends State<DriverRequestFooter> {
     return _time == 0
         ? Container()
         : Center(
-            child: InkWell(
+            child: GestureDetector(
               onTap: () {
-                stopSound();
-                setState(() {
-                  _time = 0;
-                  if (answer['route'] != null)
+                if (answer['route'] != null) {
+                  stopSound();
+                  setState(() {
+                    _time = 0;
                     widget.acceptService(answer['route'], Colors.blue);
-                });
+                  });
+                }
               },
               child: Container(
                 decoration: BoxDecoration(

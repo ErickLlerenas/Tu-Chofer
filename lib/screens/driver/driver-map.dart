@@ -91,10 +91,12 @@ class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
   }
 
   void createRoute(String encondedPoly, Color color) {
+    writePolyline(encondedPoly);
+    writePolylineColor(color.value.toString());
     polyLines = Set<Polyline>();
     polyLines.add(Polyline(
         polylineId: PolylineId(Uuid().v1()),
-        width: 3,
+        width: 8,
         points: _convertToLatLng(_decodePoly(encondedPoly)),
         color: color));
   }
@@ -210,7 +212,7 @@ class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
         _markers.add(Marker(
             markerId: MarkerId(Uuid().v1()),
             position: userOrigin,
-            infoWindow: InfoWindow(title: "Destino", snippet: destinationName),
+            infoWindow: InfoWindow(title: "Origen", snippet: destinationName),
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueAzure)));
       }
@@ -319,6 +321,54 @@ class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
     }
   }
 
+  Future<String> get _localPathPolyline async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFilePolyline async {
+    final path = await _localPathPolyline;
+    return File('$path/polyline.txt');
+  }
+
+  Future<File> writePolyline(String polyline) async {
+    final file = await _localFilePolyline;
+    return file.writeAsString('$polyline');
+  }
+
+  Future<String> readPolyline() async {
+    try {
+      final file = await _localFilePolyline;
+      return await file.readAsString();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  Future<String> get _localPathPolylineColor async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFilePolylineColor async {
+    final path = await _localPathPolylineColor;
+    return File('$path/polylineColor.txt');
+  }
+
+  Future<File> writePolylineColor(String polylineColor) async {
+    final file = await _localFilePolylineColor;
+    return file.writeAsString('$polylineColor');
+  }
+
+  Future<String> readPolylineColor() async {
+    try {
+      final file = await _localFilePolylineColor;
+      return await file.readAsString();
+    } catch (e) {
+      return "";
+    }
+  }
+
   Future checkDriverData() async {
     await Firestore.instance
         .collection('Drivers')
@@ -351,6 +401,10 @@ class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
         userPhone = user['phone'];
         duration = user['trip']['duration'];
         userName = user['name'];
+        userDestination = LatLng(user['trip']['destination'].latitude,
+            user['trip']['destination'].longitude);
+        userOrigin = LatLng(
+            user['trip']['origin'].latitude, user['trip']['origin'].longitude);
       });
     }
   }
@@ -363,9 +417,9 @@ class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
     userPhone = user['phone'];
     duration = user['trip']['duration'];
     userName = user['name'];
-    userDestination = new LatLng(user['trip']['destination'].latitude,
+    userDestination = LatLng(user['trip']['destination'].latitude,
         user['trip']['destination'].longitude);
-    userOrigin = new LatLng(
+    userOrigin = LatLng(
         user['trip']['origin'].latitude, user['trip']['origin'].longitude);
   }
 
@@ -434,8 +488,18 @@ class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
     timer =
         Timer.periodic(Duration(seconds: 5), (Timer t) => checkDriverActive());
     getDriverPhoneNumber();
-    checkDriverData();
-    WidgetsBinding.instance.addObserver(this);
+    checkDriverData().then((value) {
+      WidgetsBinding.instance.addObserver(this);
+      if (driverAcceptedService) {
+        readPolyline().then((poly) {
+          readPolylineColor().then((col) {
+            print(poly);
+            print(col);
+            createRoute(poly, new Color(int.parse(col)));
+          });
+        });
+      }
+    });
     super.initState();
   }
 
@@ -445,16 +509,22 @@ class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
         AppLifecycleState.detached == state ||
         AppLifecycleState.inactive == state) {
       if (driverIsActive) {
-        setState(() {
-          driverIsActive = false;
-        });
-        await Firestore.instance
-            .collection('Drivers')
-            .document(driverPhone)
-            .updateData({'isActive': false});
+        if (!driverAcceptedService) {
+          setState(() {
+            driverIsActive = false;
+          });
+        }
 
-        clearCar();
-        Wakelock.disable();
+        if (!driverAcceptedService) {
+          await Firestore.instance
+              .collection('Drivers')
+              .document(driverPhone)
+              .updateData({'isActive': false});
+        }
+        if (!driverIsActive) {
+          clearCar();
+          Wakelock.disable();
+        }
       }
     }
   }
@@ -484,7 +554,7 @@ class _DriverMapState extends State<DriverMap> with WidgetsBindingObserver {
                     initialCameraPosition: CameraPosition(
                         target: appState.initialPosition, zoom: 15),
                     onMapCreated: onMapCreated,
-                    myLocationEnabled: true,
+                    myLocationEnabled: false,
                     mapType: MapType.normal,
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,

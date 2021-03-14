@@ -70,6 +70,7 @@ class _DriverAcceptedFooterState extends State<DriverAcceptedFooter> {
                             if (await canLaunch(googleUrl)) {
                               await launch(googleUrl);
                             }
+                            print(widget.userOrigin.toString());
                           },
                           child: ListTile(
                             leading:
