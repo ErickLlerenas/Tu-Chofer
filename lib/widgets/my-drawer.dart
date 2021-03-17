@@ -3,7 +3,7 @@ import 'package:chofer/screens/driver/driver-messages.dart';
 import 'package:chofer/screens/driver/driver-request-pending.dart';
 import 'package:chofer/screens/driver/driver-request-screen1.dart';
 import 'package:chofer/screens/driver/driver-earnings.dart';
-import 'package:chofer/screens/user/user-card-payment.dart';
+// import 'package:chofer/screens/user/user-card-payment.dart';
 import 'package:chofer/screens/user/user-history.dart';
 import 'package:chofer/screens/user/user-messages.dart';
 import 'package:chofer/screens/driver/driver-map.dart';
@@ -73,18 +73,18 @@ class MyDrawer extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => UserProfile()));
             },
           ),
-          ListTile(
-            leading: Icon(Icons.credit_card),
-            title: Text('Pago con tarjeta'),
-            trailing: Icon(Icons.navigate_next),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
+          // ListTile(
+          //   leading: Icon(Icons.credit_card),
+          //   title: Text('Pago con tarjeta'),
+          //   trailing: Icon(Icons.navigate_next),
+          //   onTap: () {
+          //     Navigator.pop(context);
+          //     Navigator.pop(context);
 
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => UserCardPayment()));
-            },
-          ),
+          //     Navigator.push(context,
+          //         MaterialPageRoute(builder: (context) => UserCardPayment()));
+          //   },
+          // ),
           ListTile(
             leading: Icon(Icons.history),
             title: Text('Historial'),

@@ -26,6 +26,7 @@ class _EnableLocationState extends State<EnableLocation> {
                   height: 330,
                 ),
                 Text('Activa tu ubicación',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
